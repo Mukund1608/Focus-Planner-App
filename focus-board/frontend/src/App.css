@@ -252,3 +252,41 @@ footer a:hover {
     line-height: 1;
     padding: 0 5px;
 }
+
+/* Placeholder Page Styles */
+.placeholder-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    text-align: center;
+}
+
+.placeholder-page h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+    color: var(--text-primary);
+}
+
+.placeholder-page p {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Ensure proper layout integration */
+.app-container {
+    min-height: 100vh;
+}
+
+/* Hide header when using AppLayout */
+.app-container:has(.app-layout) header {
+    display: none;
+}
+
+/* Ensure fill container works with new layout */
+.fill {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
