@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { format, addWeeks, subWeeks, startOfWeek, addDays, isToday, isSameDay } from 'date-fns';
-import { Task, TaskStatus } from '../types/task';
+import { Task, TaskStatus, PriorityLevel } from '../types/task';
 import { taskAPI } from '../services/api';
 import TaskCard from './TaskCard';
 import './WeeklyView.css';
@@ -17,13 +17,15 @@ const WeeklyView: React.FC = () => {
   // Load tasks for the selected week
   useEffect(() => {
     loadTasksForWeek();
-  }, [selectedWeek]);
+  }, [selectedWeek]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadTasksForWeek = async () => {
     try {
       setLoading(true);
       const startDateString = format(selectedWeek, 'yyyy-MM-dd');
+      console.log('Loading tasks for week starting:', startDateString);
       const tasksForWeek = await taskAPI.getByWeek(startDateString);
+      console.log('Tasks loaded for week:', tasksForWeek);
       setTasks(tasksForWeek);
       setError(null);
     } catch (err) {
@@ -68,8 +70,14 @@ const WeeklyView: React.FC = () => {
     }
   };
 
-  const handleTaskStatusChange = (taskId: number, status: TaskStatus) => {
-    handleTaskUpdate(taskId, { status });
+  const handleTaskStatusChange = async (taskId: number, status: TaskStatus) => {
+    try {
+      await handleTaskUpdate(taskId, { status });
+      // Refresh the tasks after status change
+      await loadTasksForWeek();
+    } catch (err) {
+      console.error('Error updating task status:', err);
+    }
   };
 
   // Get tasks for a specific day

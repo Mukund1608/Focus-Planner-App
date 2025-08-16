@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { format, addDays, subDays, isToday, isSameDay } from 'date-fns';
-import { Task, TaskStatus } from '../types/task';
+import { Task, TaskStatus, PriorityLevel } from '../types/task';
 import { taskAPI } from '../services/api';
 import TaskCard from './TaskCard';
 import './DailyView.css';
@@ -14,13 +14,15 @@ const DailyView: React.FC = () => {
   // Load tasks for the selected date
   useEffect(() => {
     loadTasksForDate();
-  }, [selectedDate]);
+  }, [selectedDate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadTasksForDate = async () => {
     try {
       setLoading(true);
       const dateString = format(selectedDate, 'yyyy-MM-dd');
+      console.log('Loading tasks for date:', dateString);
       const tasksForDate = await taskAPI.getByDate(dateString);
+      console.log('Tasks loaded for date:', tasksForDate);
       setTasks(tasksForDate);
       setError(null);
     } catch (err) {
@@ -65,8 +67,14 @@ const DailyView: React.FC = () => {
     }
   };
 
-  const handleTaskStatusChange = (taskId: number, status: TaskStatus) => {
-    handleTaskUpdate(taskId, { status });
+  const handleTaskStatusChange = async (taskId: number, status: TaskStatus) => {
+    try {
+      await handleTaskUpdate(taskId, { status });
+      // Refresh the tasks after status change
+      await loadTasksForDate();
+    } catch (err) {
+      console.error('Error updating task status:', err);
+    }
   };
 
   // Calculate progress
@@ -76,10 +84,10 @@ const DailyView: React.FC = () => {
 
   // Group tasks by priority
   const tasksByPriority = {
-    urgent: tasks.filter(task => task.priority === 'urgent'),
-    high: tasks.filter(task => task.priority === 'high'),
-    medium: tasks.filter(task => task.priority === 'medium'),
-    low: tasks.filter(task => task.priority === 'low')
+    urgent: tasks.filter(task => task.priority === PriorityLevel.URGENT),
+    high: tasks.filter(task => task.priority === PriorityLevel.HIGH),
+    medium: tasks.filter(task => task.priority === PriorityLevel.MEDIUM),
+    low: tasks.filter(task => task.priority === PriorityLevel.LOW)
   };
 
   if (loading) {

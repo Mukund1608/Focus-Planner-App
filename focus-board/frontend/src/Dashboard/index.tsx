@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PriorityBoards from '../components/PriorityBoards';
 import DailyView from '../components/DailyView';
 import WeeklyView from '../components/WeeklyView';
+import TestTaskCreator from '../components/TestTaskCreator';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -26,7 +27,8 @@ export default function Dashboard() {
         { id: 'weekly', label: 'Weekly', icon: '📊' },
         { id: 'priority', label: 'Priority Board', icon: '🎯' },
         { id: 'habits', label: 'Habits', icon: '🔄' },
-        { id: 'focus', label: 'Focus Mode', icon: '🎧' }
+        { id: 'focus', label: 'Focus Mode', icon: '🎧' },
+        { id: 'test', label: 'Test', icon: '🧪' }
     ];
 
     const renderTabContent = () => {
@@ -63,6 +65,8 @@ export default function Dashboard() {
                         </div>
                     </div>
                 );
+            case 'test':
+                return <TestTaskCreator />;
             default:
                 return null;
         }
