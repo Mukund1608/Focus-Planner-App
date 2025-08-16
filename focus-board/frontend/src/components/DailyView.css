@@ -1,0 +1,332 @@
+.daily-view-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.daily-view-header {
+  margin-bottom: 32px;
+}
+
+.date-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.nav-btn {
+  background: #f3f4f6;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #374151;
+}
+
+.nav-btn:hover {
+  background: #e5e7eb;
+  transform: scale(1.05);
+}
+
+.nav-btn:active {
+  transform: scale(0.95);
+}
+
+.current-date {
+  text-align: center;
+}
+
+.date-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.date-title.today {
+  color: #2563eb;
+}
+
+.today-badge {
+  background: #2563eb;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.progress-summary {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #f3f4f6;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #059669);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.tasks-section {
+  margin-top: 24px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.empty-state h2 {
+  margin: 0 0 12px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 16px;
+  color: #6b7280;
+}
+
+.priority-sections {
+  display: grid;
+  gap: 24px;
+}
+
+.priority-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.priority-title {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.priority-title.urgent {
+  color: #dc2626;
+}
+
+.priority-title.high {
+  color: #ea580c;
+}
+
+.priority-title.medium {
+  color: #d97706;
+}
+
+.priority-title.low {
+  color: #059669;
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 18px;
+  color: #6b7280;
+}
+
+.error {
+  text-align: center;
+  padding: 40px 20px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  color: #dc2626;
+}
+
+.error p {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+}
+
+.btn-retry {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-retry:hover {
+  background: #b91c1c;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .daily-view-container {
+    padding: 16px;
+  }
+
+  .date-navigation {
+    gap: 16px;
+  }
+
+  .nav-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .date-title {
+    font-size: 24px;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .priority-sections {
+    gap: 16px;
+  }
+
+  .priority-section {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .daily-view-container {
+    padding: 12px;
+  }
+
+  .date-title {
+    font-size: 20px;
+  }
+
+  .today-badge {
+    font-size: 12px;
+    padding: 2px 8px;
+  }
+
+  .progress-summary {
+    padding: 16px;
+  }
+
+  .priority-section {
+    padding: 12px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .daily-view-container {
+    background: #111827;
+    color: #f9fafb;
+  }
+
+  .date-title {
+    color: #f9fafb;
+  }
+
+  .date-title.today {
+    color: #60a5fa;
+  }
+
+  .today-badge {
+    background: #60a5fa;
+  }
+
+  .progress-summary,
+  .priority-section,
+  .empty-state {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .progress-bar {
+    background: #374151;
+  }
+
+  .progress-text {
+    color: #d1d5db;
+  }
+
+  .nav-btn {
+    background: #374151;
+    color: #d1d5db;
+  }
+
+  .nav-btn:hover {
+    background: #4b5563;
+  }
+
+  .empty-state h2 {
+    color: #f9fafb;
+  }
+
+  .empty-state p {
+    color: #9ca3af;
+  }
+
+  .loading {
+    color: #9ca3af;
+  }
+
+  .error {
+    background: #7f1d1d;
+    border-color: #fca5a5;
+    color: #fca5a5;
+  }
+
+  .btn-retry {
+    background: #ef4444;
+  }
+
+  .btn-retry:hover {
+    background: #dc2626;
+  }
+}

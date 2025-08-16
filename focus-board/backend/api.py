@@ -9,7 +9,8 @@ from crud import (
     create_priority_board, get_priority_board, get_priority_boards,
     update_priority_board, delete_priority_board,
     create_task, get_task, get_tasks_by_priority_board, get_tasks_by_user,
-    update_task, delete_task, reorder_task, bulk_update_tasks
+    update_task, delete_task, reorder_task, bulk_update_tasks,
+    get_tasks_by_date, get_tasks_by_date_range
 )
 from schemas import (
     PriorityBoardCreate, PriorityBoardResponse, PriorityBoardUpdate,
@@ -103,6 +104,43 @@ async def get_tasks_endpoint(
 ):
     """Get all tasks for the current user"""
     return get_tasks_by_user(db, current_user)
+
+@router.get("/tasks/by-date/{date}", response_model=List[TaskResponse])
+async def get_tasks_by_date_endpoint(
+    date: str,  # Format: YYYY-MM-DD
+    current_user: str = Depends(get_current_user),
+    db: DBSession = Depends(get_db)
+):
+    """Get all tasks for a specific date for the current user"""
+    from datetime import datetime
+    try:
+        # Parse the date string
+        target_date = datetime.strptime(date, "%Y-%m-%d").date()
+        return get_tasks_by_date(db, current_user, target_date)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid date format. Use YYYY-MM-DD"
+        )
+
+@router.get("/tasks/by-week/{start_date}", response_model=List[TaskResponse])
+async def get_tasks_by_week_endpoint(
+    start_date: str,  # Format: YYYY-MM-DD (start of week)
+    current_user: str = Depends(get_current_user),
+    db: DBSession = Depends(get_db)
+):
+    """Get all tasks for a specific week (7 days starting from start_date)"""
+    from datetime import datetime, timedelta
+    try:
+        # Parse the start date
+        start = datetime.strptime(start_date, "%Y-%m-%d").date()
+        end = start + timedelta(days=6)  # 7 days total
+        return get_tasks_by_date_range(db, current_user, start, end)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid date format. Use YYYY-MM-DD"
+        )
 
 @router.get("/tasks/priority-board/{priority_board_id}", response_model=List[TaskResponse])
 async def get_tasks_by_priority_board_endpoint(

@@ -171,3 +171,32 @@ def bulk_update_tasks(db: Session, task_ids: List[int], updates: TaskUpdate, use
     
     db.commit()
     return updated_count
+
+# Date filtering functions for Daily and Weekly views
+def get_tasks_by_date(db: Session, user_id: str, target_date) -> List[Task]:
+    """Get all tasks for a specific date"""
+    from datetime import datetime
+    start_of_day = datetime.combine(target_date, datetime.min.time())
+    end_of_day = datetime.combine(target_date, datetime.max.time())
+    
+    return db.query(Task).filter(
+        and_(
+            Task.user_id == user_id,
+            Task.due_date >= start_of_day,
+            Task.due_date <= end_of_day
+        )
+    ).order_by(Task.priority_board_id, Task.position).all()
+
+def get_tasks_by_date_range(db: Session, user_id: str, start_date, end_date) -> List[Task]:
+    """Get all tasks within a date range"""
+    from datetime import datetime
+    start_datetime = datetime.combine(start_date, datetime.min.time())
+    end_datetime = datetime.combine(end_date, datetime.max.time())
+    
+    return db.query(Task).filter(
+        and_(
+            Task.user_id == user_id,
+            Task.due_date >= start_datetime,
+            Task.due_date <= end_datetime
+        )
+    ).order_by(Task.due_date, Task.priority_board_id, Task.position).all()
