@@ -1,16 +1,13 @@
-import SuperTokens, { SuperTokensWrapper } from "supertokens-auth-react";
+import { SuperTokensWrapper } from "supertokens-auth-react";
 import { getSuperTokensRoutesForReactRouterDom } from "supertokens-auth-react/ui";
 import { SessionAuth } from "supertokens-auth-react/recipe/session";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import * as ReactRouter from "react-router-dom";
 import Dashboard from "./Dashboard";
-import { PreBuiltUIList, SuperTokensConfig, ComponentWrapper } from "./config";
+import { PreBuiltUIList, ComponentWrapper } from "./config";
 import Home from "./Home";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import AppLayout from "./components/AppLayout";
-
-// Initialize SuperTokens - ideally in the global scope
-SuperTokens.init(SuperTokensConfig);
 
 function App() {
     return (

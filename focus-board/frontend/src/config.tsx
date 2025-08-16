@@ -7,13 +7,13 @@ import Session from "supertokens-auth-react/recipe/session";
 
 
 export function getApiDomain() {
-    const apiPort = 3001;
+    const apiPort = 5000;
     const apiUrl = `http://localhost:${apiPort}`;
     return apiUrl;
 }
 
 export function getWebsiteDomain() {
-    const websitePort = 3000;
+    const websitePort = 3001;
     const websiteUrl = `http://localhost:${websitePort}`;
     return websiteUrl;
 }

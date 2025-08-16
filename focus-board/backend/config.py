@@ -7,17 +7,18 @@ from supertokens_python.recipe import emailpassword
 
 
 def get_api_domain() -> str:
-    api_port = str(3001)
+    api_port = str(5000)
     api_url = f"http://localhost:{api_port}"
     return api_url
 
 def get_website_domain() -> str:
-    website_port = str(3000)
+    website_port = str(3001)
     website_url = f"http://localhost:{website_port}"
     return website_url
 
 supertokens_config = SupertokensConfig(
-    connection_uri="https://try.supertokens.com"
+    connection_uri="https://try.supertokens.com",
+    api_key="your-api-key-here"  # Optional for development
 )
 
 app_info = InputAppInfo(

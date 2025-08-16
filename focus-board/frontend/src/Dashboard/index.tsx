@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PriorityBoards from '../components/PriorityBoards';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -27,32 +28,7 @@ export default function Dashboard() {
                     </div>
                 );
             case 'priority':
-                return (
-                    <div className="priority-view">
-                        <h2>Priority Board</h2>
-                        <div className="placeholder-content">
-                            <p>Organize tasks by priority level</p>
-                            <div className="priority-columns">
-                                <div className="priority-column urgent">
-                                    <h3>🚨 Urgent</h3>
-                                    <div className="placeholder-task">No urgent tasks</div>
-                                </div>
-                                <div className="priority-column high">
-                                    <h3>🔥 High</h3>
-                                    <div className="placeholder-task">No high priority tasks</div>
-                                </div>
-                                <div className="priority-column medium">
-                                    <h3>⚡ Medium</h3>
-                                    <div className="placeholder-task">No medium priority tasks</div>
-                                </div>
-                                <div className="priority-column low">
-                                    <h3>🌱 Low</h3>
-                                    <div className="placeholder-task">No low priority tasks</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                );
+                return <PriorityBoards />;
             case 'habits':
                 return (
                     <div className="habits-view">

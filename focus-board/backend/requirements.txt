@@ -1,3 +1,7 @@
 fastapi
 uvicorn
 supertokens-python
+sqlalchemy
+pydantic
+python-multipart
+sqlalchemy-utils
