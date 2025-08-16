@@ -98,4 +98,11 @@ export const taskAPI = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+
+  // Date filtering methods for Daily and Weekly views
+  getByDate: (date: string): Promise<Task[]> =>
+    apiCall<Task[]>(`/tasks/by-date/${date}`),
+
+  getByWeek: (startDate: string): Promise<Task[]> =>
+    apiCall<Task[]>(`/tasks/by-week/${startDate}`),
 };

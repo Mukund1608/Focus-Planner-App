@@ -1,12 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PriorityBoards from '../components/PriorityBoards';
+import DailyView from '../components/DailyView';
+import WeeklyView from '../components/WeeklyView';
 import './Dashboard.css';
 
 export default function Dashboard() {
     const [activeTab, setActiveTab] = useState('daily');
 
+    // Load active tab from localStorage on component mount
+    useEffect(() => {
+        const savedTab = localStorage.getItem('focusboard-active-tab');
+        if (savedTab && ['daily', 'weekly', 'priority', 'habits', 'focus'].includes(savedTab)) {
+            setActiveTab(savedTab);
+        }
+    }, []);
+
+    // Save active tab to localStorage when it changes
+    const handleTabChange = (tabId: string) => {
+        setActiveTab(tabId);
+        localStorage.setItem('focusboard-active-tab', tabId);
+    };
+
     const tabs = [
-        { id: 'daily', label: 'Daily Tasks', icon: '📅' },
+        { id: 'daily', label: 'Daily', icon: '📅' },
+        { id: 'weekly', label: 'Weekly', icon: '📊' },
         { id: 'priority', label: 'Priority Board', icon: '🎯' },
         { id: 'habits', label: 'Habits', icon: '🔄' },
         { id: 'focus', label: 'Focus Mode', icon: '🎧' }
@@ -15,18 +32,9 @@ export default function Dashboard() {
     const renderTabContent = () => {
         switch (activeTab) {
             case 'daily':
-                return (
-                    <div className="daily-view">
-                        <h2>Daily Tasks</h2>
-                        <div className="placeholder-content">
-                            <p>Your daily task management will appear here</p>
-                            <div className="placeholder-card">
-                                <span className="placeholder-icon">📝</span>
-                                <p>Add your first daily task</p>
-                            </div>
-                        </div>
-                    </div>
-                );
+                return <DailyView />;
+            case 'weekly':
+                return <WeeklyView />;
             case 'priority':
                 return <PriorityBoards />;
             case 'habits':
@@ -72,7 +80,7 @@ export default function Dashboard() {
                     <button
                         key={tab.id}
                         className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
-                        onClick={() => setActiveTab(tab.id)}
+                        onClick={() => handleTabChange(tab.id)}
                     >
                         <span className="tab-icon">{tab.icon}</span>
                         <span className="tab-label">{tab.label}</span>
