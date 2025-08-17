@@ -13,12 +13,16 @@ from crud import (
     get_tasks_by_date, get_tasks_by_date_range,
     create_recurring_task, get_recurring_tasks, get_tasks_with_reminders,
     get_pending_reminders, mark_reminder_sent, process_recurring_tasks,
-    get_task_occurrences
+    get_task_occurrences,
+    create_habit, get_habit, get_habits, update_habit, delete_habit,
+    complete_habit, get_habit_completions, get_habit_stats
 )
 from schemas import (
     PriorityBoardCreate, PriorityBoardResponse, PriorityBoardUpdate,
     TaskCreate, TaskResponse, TaskUpdate, TaskReorderRequest, TaskBulkUpdateRequest,
-    CreateRecurringTaskRequest, RecurringConfig, ReminderConfig
+    CreateRecurringTaskRequest, RecurringConfig, ReminderConfig,
+    HabitCreate, HabitResponse, HabitUpdate, HabitCompletionCreate,
+    HabitCompletionResponse, HabitStats
 )
 
 router = APIRouter(prefix="/api", tags=["tasks"])
@@ -342,3 +346,109 @@ async def configure_task_reminder_endpoint(
     db.refresh(task)
     
     return {"message": "Reminder configured successfully", "task": TaskResponse.from_orm(task)}
+
+# Habit endpoints
+@router.post("/habits", response_model=HabitResponse)
+async def create_habit_endpoint(
+    habit: HabitCreate,
+    current_user: str = Depends(get_current_user),
+    db: DBSession = Depends(get_db)
+):
+    """Create a new habit for the current user"""
+    return create_habit(db, habit, current_user)
+
+@router.get("/habits", response_model=List[HabitResponse])
+async def get_habits_endpoint(
+    active_only: bool = False,
+    current_user: str = Depends(get_current_user),
+    db: DBSession = Depends(get_db)
+):
+    """Get all habits for the current user, optionally filtered by active status"""
+    return get_habits(db, current_user, active_only)
+
+@router.get("/habits/{habit_id}", response_model=HabitResponse)
+async def get_habit_endpoint(
+    habit_id: int,
+    current_user: str = Depends(get_current_user),
+    db: DBSession = Depends(get_db)
+):
+    """Get a specific habit by ID"""
+    habit = get_habit(db, habit_id, current_user)
+    if not habit:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Habit not found"
+        )
+    return habit
+
+@router.put("/habits/{habit_id}", response_model=HabitResponse)
+async def update_habit_endpoint(
+    habit_id: int,
+    habit: HabitUpdate,
+    current_user: str = Depends(get_current_user),
+    db: DBSession = Depends(get_db)
+):
+    """Update a habit"""
+    updated_habit = update_habit(db, habit_id, habit, current_user)
+    if not updated_habit:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Habit not found"
+        )
+    return updated_habit
+
+@router.delete("/habits/{habit_id}")
+async def delete_habit_endpoint(
+    habit_id: int,
+    current_user: str = Depends(get_current_user),
+    db: DBSession = Depends(get_db)
+):
+    """Delete a habit"""
+    success = delete_habit(db, habit_id, current_user)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Habit not found"
+        )
+    return {"message": "Habit deleted successfully"}
+
+@router.post("/habits/{habit_id}/complete", response_model=HabitCompletionResponse)
+async def complete_habit_endpoint(
+    habit_id: int,
+    completion: HabitCompletionCreate,
+    current_user: str = Depends(get_current_user),
+    db: DBSession = Depends(get_db)
+):
+    """Mark a habit as completed for today"""
+    completion_record = complete_habit(db, habit_id, completion, current_user)
+    if not completion_record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Habit not found"
+        )
+    return completion_record
+
+@router.get("/habits/{habit_id}/completions", response_model=List[HabitCompletionResponse])
+async def get_habit_completions_endpoint(
+    habit_id: int,
+    days: int = 30,
+    current_user: str = Depends(get_current_user),
+    db: DBSession = Depends(get_db)
+):
+    """Get habit completions for the last N days"""
+    # Verify the habit belongs to the user
+    habit = get_habit(db, habit_id, current_user)
+    if not habit:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Habit not found"
+        )
+    return get_habit_completions(db, habit_id, current_user, days)
+
+@router.get("/habits/stats", response_model=HabitStats)
+async def get_habit_stats_endpoint(
+    current_user: str = Depends(get_current_user),
+    db: DBSession = Depends(get_db)
+):
+    """Get comprehensive habit statistics for the current user"""
+    return get_habit_stats(db, current_user)

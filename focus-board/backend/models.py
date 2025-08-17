@@ -30,6 +30,12 @@ class ReminderType(enum.Enum):
     BROWSER = "browser"
     BOTH = "both"
 
+class HabitFrequency(enum.Enum):
+    DAILY = "daily"
+    WEEKLY = "weekly"
+    MONTHLY = "monthly"
+    CUSTOM = "custom"
+
 class User(Base):
     __tablename__ = "users"
     
@@ -41,6 +47,7 @@ class User(Base):
     # Relationships
     tasks = relationship("Task", back_populates="user")
     priority_boards = relationship("PriorityBoard", back_populates="user")
+    habits = relationship("Habit", back_populates="user")
 
 class PriorityBoard(Base):
     __tablename__ = "priority_boards"
@@ -89,3 +96,37 @@ class Task(Base):
     priority_board = relationship("PriorityBoard", back_populates="tasks")
     # Self-referencing relationship for recurring tasks
     parent_task = relationship("Task", remote_side=[id], backref="child_tasks")
+
+class Habit(Base):
+    __tablename__ = "habits"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    description = Column(Text)
+    frequency = Column(Enum(HabitFrequency), default=HabitFrequency.DAILY)
+    target_count = Column(Integer, default=1)  # How many times per frequency period
+    current_streak = Column(Integer, default=0)  # Current consecutive streak
+    longest_streak = Column(Integer, default=0)  # Longest streak achieved
+    total_completions = Column(Integer, default=0)  # Total times completed
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    is_active = Column(Boolean, default=True)
+    color = Column(String, default="#667eea")  # Custom color for the habit
+    icon = Column(String, default="🔄")  # Emoji icon for the habit
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    user = relationship("User", back_populates="habits")
+    completions = relationship("HabitCompletion", back_populates="habit", cascade="all, delete-orphan")
+
+class HabitCompletion(Base):
+    __tablename__ = "habit_completions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    habit_id = Column(Integer, ForeignKey("habits.id"), nullable=False)
+    completed_at = Column(DateTime, default=datetime.utcnow)
+    notes = Column(Text)  # Optional notes for the completion
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    habit = relationship("Habit", back_populates="completions")

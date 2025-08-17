@@ -26,6 +26,13 @@ export enum ReminderType {
   BOTH = "both"
 }
 
+export enum HabitFrequency {
+  DAILY = "daily",
+  WEEKLY = "weekly",
+  MONTHLY = "monthly",
+  CUSTOM = "custom"
+}
+
 export interface Task {
   id: number;
   title: string;
@@ -144,4 +151,64 @@ export interface UpdateRecurringTaskRequest {
   task_id: number;
   updates: TaskUpdate;
   recurring_config?: RecurringConfig;
+}
+
+// Habit interfaces
+export interface Habit {
+  id: number;
+  title: string;
+  description?: string;
+  frequency: HabitFrequency;
+  target_count: number;
+  current_streak: number;
+  longest_streak: number;
+  total_completions: number;
+  user_id: string;
+  is_active: boolean;
+  color: string;
+  icon: string;
+  created_at: string;
+  updated_at: string;
+  completions: HabitCompletion[];
+}
+
+export interface HabitCompletion {
+  id: number;
+  habit_id: number;
+  completed_at: string;
+  notes?: string;
+  created_at: string;
+}
+
+export interface HabitCreate {
+  title: string;
+  description?: string;
+  frequency: HabitFrequency;
+  target_count: number;
+  color: string;
+  icon: string;
+}
+
+export interface HabitUpdate {
+  title?: string;
+  description?: string;
+  frequency?: HabitFrequency;
+  target_count?: number;
+  is_active?: boolean;
+  color?: string;
+  icon?: string;
+}
+
+export interface HabitCompletionCreate {
+  notes?: string;
+}
+
+export interface HabitStats {
+  total_habits: number;
+  active_habits: number;
+  total_completions_today: number;
+  total_completions_this_week: number;
+  total_completions_this_month: number;
+  average_streak: number;
+  longest_current_streak: number;
 }

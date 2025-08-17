@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from models import PriorityLevel, TaskStatus, RecurringPattern, ReminderType
+from models import PriorityLevel, TaskStatus, RecurringPattern, ReminderType, HabitFrequency
 
 # Base schemas
 class TaskBase(BaseModel):
@@ -108,3 +108,60 @@ class UpdateRecurringTaskRequest(BaseModel):
     task_id: int
     updates: TaskUpdate
     recurring_config: Optional[RecurringConfig] = None
+
+# Habit schemas
+class HabitBase(BaseModel):
+    title: str = Field(..., min_length=1, max_length=200)
+    description: Optional[str] = Field(None, max_length=1000)
+    frequency: HabitFrequency = HabitFrequency.DAILY
+    target_count: int = Field(1, ge=1, le=100)
+    color: str = Field("#667eea", pattern=r"^#[0-9A-Fa-f]{6}$")
+    icon: str = Field("🔄", max_length=10)
+
+class HabitCreate(HabitBase):
+    pass
+
+class HabitUpdate(BaseModel):
+    title: Optional[str] = Field(None, min_length=1, max_length=200)
+    description: Optional[str] = Field(None, max_length=1000)
+    frequency: Optional[HabitFrequency] = None
+    target_count: Optional[int] = Field(None, ge=1, le=100)
+    is_active: Optional[bool] = None
+    color: Optional[str] = Field(None, pattern=r"^#[0-9A-Fa-f]{6}$")
+    icon: Optional[str] = Field(None, max_length=10)
+
+class HabitCompletionCreate(BaseModel):
+    notes: Optional[str] = Field(None, max_length=500)
+
+class HabitCompletionResponse(BaseModel):
+    id: int
+    habit_id: int
+    completed_at: datetime
+    notes: Optional[str] = None
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class HabitResponse(HabitBase):
+    id: int
+    user_id: str
+    current_streak: int
+    longest_streak: int
+    total_completions: int
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+    completions: List[HabitCompletionResponse] = []
+    
+    class Config:
+        from_attributes = True
+
+class HabitStats(BaseModel):
+    total_habits: int
+    active_habits: int
+    total_completions_today: int
+    total_completions_this_week: int
+    total_completions_this_month: int
+    average_streak: float
+    longest_current_streak: int

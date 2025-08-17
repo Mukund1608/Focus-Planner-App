@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, desc
 from typing import List, Optional
-from models import Task, PriorityBoard, User, PriorityLevel, TaskStatus, RecurringPattern, ReminderType
-from schemas import TaskCreate, TaskUpdate, PriorityBoardCreate, PriorityBoardUpdate, RecurringConfig
+from models import Task, PriorityBoard, User, PriorityLevel, TaskStatus, RecurringPattern, ReminderType, Habit, HabitCompletion, HabitFrequency
+from schemas import TaskCreate, TaskUpdate, PriorityBoardCreate, PriorityBoardUpdate, RecurringConfig, HabitCreate, HabitUpdate, HabitCompletionCreate
 from recurring_utils import create_next_occurrence, calculate_reminder_time
 from datetime import datetime
 
@@ -362,3 +362,224 @@ def get_task_occurrences(db: Session, parent_task_id: int, user_id: str) -> List
             Task.parent_task_id == parent_task_id
         )
     ).order_by(Task.due_date).all()
+
+# Habit CRUD operations
+def create_habit(db: Session, habit: HabitCreate, user_id: str) -> Habit:
+    """
+    Create a new habit for a user
+    """
+    db_habit = Habit(
+        title=habit.title,
+        description=habit.description,
+        frequency=habit.frequency,
+        target_count=habit.target_count,
+        color=habit.color,
+        icon=habit.icon,
+        user_id=user_id
+    )
+    db.add(db_habit)
+    db.commit()
+    db.refresh(db_habit)
+    return db_habit
+
+def get_habit(db: Session, habit_id: int, user_id: str) -> Optional[Habit]:
+    """
+    Get a specific habit by ID for a user
+    """
+    return db.query(Habit).filter(
+        and_(Habit.id == habit_id, Habit.user_id == user_id)
+    ).first()
+
+def get_habits(db: Session, user_id: str, active_only: bool = False) -> List[Habit]:
+    """
+    Get all habits for a user, optionally filtered by active status
+    """
+    query = db.query(Habit).filter(Habit.user_id == user_id)
+    if active_only:
+        query = query.filter(Habit.is_active == True)
+    return query.order_by(Habit.created_at.desc()).all()
+
+def update_habit(db: Session, habit_id: int, habit: HabitUpdate, user_id: str) -> Optional[Habit]:
+    """
+    Update a habit
+    """
+    db_habit = get_habit(db, habit_id, user_id)
+    if db_habit:
+        update_data = habit.dict(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(db_habit, field, value)
+        db.commit()
+        db.refresh(db_habit)
+    return db_habit
+
+def delete_habit(db: Session, habit_id: int, user_id: str) -> bool:
+    """
+    Delete a habit
+    """
+    db_habit = get_habit(db, habit_id, user_id)
+    if db_habit:
+        db.delete(db_habit)
+        db.commit()
+        return True
+    return False
+
+def complete_habit(db: Session, habit_id: int, completion: HabitCompletionCreate, user_id: str) -> Optional[HabitCompletion]:
+    """
+    Mark a habit as completed for today
+    """
+    db_habit = get_habit(db, habit_id, user_id)
+    if not db_habit:
+        return None
+    
+    # Create completion record
+    db_completion = HabitCompletion(
+        habit_id=habit_id,
+        notes=completion.notes
+    )
+    db.add(db_completion)
+    
+    # Update habit statistics
+    db_habit.total_completions += 1
+    
+    # Calculate and update streaks
+    update_habit_streaks(db, db_habit)
+    
+    db.commit()
+    db.refresh(db_completion)
+    return db_completion
+
+def update_habit_streaks(db: Session, habit: Habit):
+    """
+    Update the current and longest streaks for a habit
+    """
+    from datetime import datetime, timedelta
+    
+    # Get recent completions based on frequency
+    if habit.frequency == HabitFrequency.DAILY:
+        # Check last 30 days for daily habits
+        start_date = datetime.utcnow() - timedelta(days=30)
+        completions = db.query(HabitCompletion).filter(
+            and_(
+                HabitCompletion.habit_id == habit.id,
+                HabitCompletion.completed_at >= start_date
+            )
+        ).order_by(HabitCompletion.completed_at.desc()).all()
+        
+        # Calculate current streak
+        current_streak = 0
+        check_date = datetime.utcnow().date()
+        
+        for completion in completions:
+            completion_date = completion.completed_at.date()
+            if completion_date == check_date:
+                current_streak += 1
+                check_date -= timedelta(days=1)
+            elif completion_date < check_date:
+                break
+        
+        habit.current_streak = current_streak
+        
+    elif habit.frequency == HabitFrequency.WEEKLY:
+        # Check last 12 weeks for weekly habits
+        start_date = datetime.utcnow() - timedelta(weeks=12)
+        completions = db.query(HabitCompletion).filter(
+            and_(
+                HabitCompletion.habit_id == habit.id,
+                HabitCompletion.completed_at >= start_date
+            )
+        ).order_by(HabitCompletion.completed_at.desc()).all()
+        
+        # Calculate current streak
+        current_streak = 0
+        current_week = datetime.utcnow().isocalendar()[1]
+        
+        for completion in completions:
+            completion_week = completion.completed_at.isocalendar()[1]
+            if completion_week == current_week:
+                current_streak += 1
+                current_week -= 1
+            elif completion_week < current_week:
+                break
+        
+        habit.current_streak = current_streak
+    
+    # Update longest streak if current streak is longer
+    if habit.current_streak > habit.longest_streak:
+        habit.longest_streak = habit.current_streak
+
+def get_habit_completions(db: Session, habit_id: int, user_id: str, days: int = 30) -> List[HabitCompletion]:
+    """
+    Get habit completions for the last N days
+    """
+    from datetime import datetime, timedelta
+    start_date = datetime.utcnow() - timedelta(days=days)
+    
+    return db.query(HabitCompletion).join(Habit).filter(
+        and_(
+            Habit.id == habit_id,
+            Habit.user_id == user_id,
+            HabitCompletion.completed_at >= start_date
+        )
+    ).order_by(HabitCompletion.completed_at.desc()).all()
+
+def get_habit_stats(db: Session, user_id: str):
+    """
+    Get comprehensive habit statistics for a user
+    """
+    from datetime import datetime, timedelta
+    from sqlalchemy import func
+    
+    # Get basic counts
+    total_habits = db.query(Habit).filter(Habit.user_id == user_id).count()
+    active_habits = db.query(Habit).filter(
+        and_(Habit.user_id == user_id, Habit.is_active == True)
+    ).count()
+    
+    # Get completion counts for different time periods
+    today = datetime.utcnow().date()
+    week_start = datetime.utcnow() - timedelta(days=datetime.utcnow().weekday())
+    month_start = datetime.utcnow().replace(day=1)
+    
+    completions_today = db.query(HabitCompletion).join(Habit).filter(
+        and_(
+            Habit.user_id == user_id,
+            func.date(HabitCompletion.completed_at) == today
+        )
+    ).count()
+    
+    completions_this_week = db.query(HabitCompletion).join(Habit).filter(
+        and_(
+            Habit.user_id == user_id,
+            HabitCompletion.completed_at >= week_start
+        )
+    ).count()
+    
+    completions_this_month = db.query(HabitCompletion).join(Habit).filter(
+        and_(
+            Habit.user_id == user_id,
+            HabitCompletion.completed_at >= month_start
+        )
+    ).count()
+    
+    # Calculate average streak
+    habits_with_streaks = db.query(Habit).filter(
+        and_(Habit.user_id == user_id, Habit.current_streak > 0)
+    ).all()
+    
+    average_streak = 0
+    longest_current_streak = 0
+    
+    if habits_with_streaks:
+        total_streak = sum(habit.current_streak for habit in habits_with_streaks)
+        average_streak = total_streak / len(habits_with_streaks)
+        longest_current_streak = max(habit.current_streak for habit in habits_with_streaks)
+    
+    return {
+        "total_habits": total_habits,
+        "active_habits": active_habits,
+        "total_completions_today": completions_today,
+        "total_completions_this_week": completions_this_week,
+        "total_completions_this_month": completions_this_month,
+        "average_streak": round(average_streak, 1),
+        "longest_current_streak": longest_current_streak
+    }

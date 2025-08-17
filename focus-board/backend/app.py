@@ -8,7 +8,7 @@ from supertokens_python.framework.fastapi import get_middleware
 from supertokens_python.recipe.session import SessionContainer
 from supertokens_python.recipe.session.framework.fastapi import verify_session
 from supertokens_python.recipe.multitenancy.asyncio import list_all_tenants
-from supertokens_python.recipe.emailpassword.asyncio import get_user_by_id
+from supertokens_python.recipe.usermetadata.asyncio import get_user_metadata
 
 import config
 from database import create_tables
@@ -52,16 +52,13 @@ app.get("/sessioninfo/")(get_session_info)
 async def get_user_profile(s: SessionContainer = Depends(verify_session())):
     try:
         user_id = s.get_user_id()
-        user = await get_user_by_id(user_id)
+        # Get user metadata instead of full user object
+        user_metadata = await get_user_metadata(user_id)
         
-        if user:
-            return {
-                "id": user.user_id,
-                "email": user.email,
-                "timeJoined": user.time_joined
-            }
-        else:
-            return {"error": "User not found"}
+        return {
+            "id": user_id,
+            "metadata": user_metadata.metadata if user_metadata else {}
+        }
     except Exception as e:
         return {"error": str(e)}
 

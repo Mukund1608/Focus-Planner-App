@@ -9,7 +9,13 @@ import {
   TaskBulkUpdateRequest,
   CreateRecurringTaskRequest,
   RecurringConfig,
-  ReminderConfig
+  ReminderConfig,
+  Habit,
+  HabitCreate,
+  HabitUpdate,
+  HabitCompletion,
+  HabitCompletionCreate,
+  HabitStats
 } from '../types/task';
 
 const API_BASE_URL = 'http://localhost:5000/api';
@@ -144,4 +150,42 @@ export const taskAPI = {
       method: 'POST',
       body: JSON.stringify(config),
     }),
+};
+
+// Habit API calls
+export const habitAPI = {
+  create: (data: HabitCreate): Promise<Habit> =>
+    apiCall<Habit>('/habits', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getAll: (activeOnly: boolean = false): Promise<Habit[]> =>
+    apiCall<Habit[]>(`/habits?active_only=${activeOnly}`),
+
+  getById: (id: number): Promise<Habit> =>
+    apiCall<Habit>(`/habits/${id}`),
+
+  update: (id: number, data: HabitUpdate): Promise<Habit> =>
+    apiCall<Habit>(`/habits/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: number): Promise<{ message: string }> =>
+    apiCall<{ message: string }>(`/habits/${id}`, {
+      method: 'DELETE',
+    }),
+
+  complete: (id: number, data: HabitCompletionCreate): Promise<HabitCompletion> =>
+    apiCall<HabitCompletion>(`/habits/${id}/complete`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getCompletions: (id: number, days: number = 30): Promise<HabitCompletion[]> =>
+    apiCall<HabitCompletion[]>(`/habits/${id}/completions?days=${days}`),
+
+  getStats: (): Promise<HabitStats> =>
+    apiCall<HabitStats>('/habits/stats'),
 };

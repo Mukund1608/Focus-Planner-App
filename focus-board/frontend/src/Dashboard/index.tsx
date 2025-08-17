@@ -4,6 +4,7 @@ import DailyView from '../components/DailyView';
 import WeeklyView from '../components/WeeklyView';
 import Settings from '../components/Settings';
 import FocusMode from '../components/FocusMode';
+import HabitTracker from '../components/HabitTracker';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -43,18 +44,7 @@ export default function Dashboard() {
             case 'settings':
                 return <Settings />;
             case 'habits':
-                return (
-                    <div className="habits-view">
-                        <h2>Habits</h2>
-                        <div className="placeholder-content">
-                            <p>Track your daily habits and routines</p>
-                            <div className="placeholder-card">
-                                <span className="placeholder-icon">🔄</span>
-                                <p>Start building positive habits</p>
-                            </div>
-                        </div>
-                    </div>
-                );
+                return <HabitTracker />;
             case 'focus':
                 return <FocusMode />;
             default:
