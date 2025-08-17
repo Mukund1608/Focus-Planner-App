@@ -40,7 +40,7 @@ This is the FastAPI backend for FocusBoard, providing priority task management w
    python app.py
    ```
 
-The API will be available at `http://localhost:3001`
+The API will be available at `http://localhost:5000`
 
 ## API Endpoints
 

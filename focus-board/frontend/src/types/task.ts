@@ -11,6 +11,21 @@ export enum TaskStatus {
   COMPLETED = "completed"
 }
 
+export enum RecurringPattern {
+  NONE = "none",
+  DAILY = "daily",
+  WEEKLY = "weekly",
+  MONTHLY = "monthly",
+  CUSTOM = "custom"
+}
+
+export enum ReminderType {
+  NONE = "none",
+  EMAIL = "email",
+  BROWSER = "browser",
+  BOTH = "both"
+}
+
 export interface Task {
   id: number;
   title: string;
@@ -21,6 +36,21 @@ export interface Task {
   user_id: string;
   priority_board_id: number;
   position: number;
+  
+  // Reminder fields
+  reminder_enabled: boolean;
+  reminder_time?: string;
+  reminder_type: ReminderType;
+  reminder_sent: boolean;
+  reminder_advance?: string;
+  
+  // Recurring task fields
+  is_recurring: boolean;
+  recurring_pattern: RecurringPattern;
+  recurring_config?: Record<string, any>;
+  parent_task_id?: number;
+  next_occurrence?: string;
+  
   created_at: string;
   updated_at: string;
 }
@@ -37,10 +67,20 @@ export interface PriorityBoard {
 export interface TaskCreate {
   title: string;
   description?: string;
-  priority: PriorityLevel;
-  status: TaskStatus;
+  priority?: PriorityLevel;
+  status?: TaskStatus;
   due_date?: string;
-  priority_board_id: number;
+  priority_board_id?: number;
+  
+  // Reminder fields
+  reminder_enabled?: boolean;
+  reminder_type?: ReminderType;
+  reminder_advance?: string;
+  
+  // Recurring task fields
+  is_recurring?: boolean;
+  recurring_pattern?: RecurringPattern;
+  recurring_config?: Record<string, any>;
 }
 
 export interface TaskUpdate {
@@ -49,7 +89,16 @@ export interface TaskUpdate {
   priority?: PriorityLevel;
   status?: TaskStatus;
   due_date?: string;
-  position?: number;
+  
+  // Reminder fields
+  reminder_enabled?: boolean;
+  reminder_type?: ReminderType;
+  reminder_advance?: string;
+  
+  // Recurring task fields
+  is_recurring?: boolean;
+  recurring_pattern?: RecurringPattern;
+  recurring_config?: Record<string, any>;
 }
 
 export interface PriorityBoardCreate {
@@ -69,4 +118,30 @@ export interface TaskReorderRequest {
 export interface TaskBulkUpdateRequest {
   task_ids: number[];
   updates: TaskUpdate;
+}
+
+// New interfaces for recurring tasks and reminders
+export interface RecurringConfig {
+  interval: number;
+  weekdays?: number[];
+  end_date?: string;
+  max_occurrences?: number;
+}
+
+export interface ReminderConfig {
+  enabled: boolean;
+  time?: string;
+  type: ReminderType;
+  advance_minutes: number;
+}
+
+export interface CreateRecurringTaskRequest {
+  base_task: TaskCreate;
+  recurring_config: RecurringConfig;
+}
+
+export interface UpdateRecurringTaskRequest {
+  task_id: number;
+  updates: TaskUpdate;
+  recurring_config?: RecurringConfig;
 }

@@ -3,13 +3,21 @@ import { getSuperTokensRoutesForReactRouterDom } from "supertokens-auth-react/ui
 import { SessionAuth } from "supertokens-auth-react/recipe/session";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import * as ReactRouter from "react-router-dom";
+import { useEffect } from "react";
 import Dashboard from "./Dashboard";
 import { PreBuiltUIList, ComponentWrapper } from "./config";
 import Home from "./Home";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import AppLayout from "./components/AppLayout";
+import { notificationService } from "./services/notificationService";
 
 function App() {
+    // Initialize notification service when app starts
+    useEffect(() => {
+        // Initialize notification service
+        console.log('Initializing notification service...');
+    }, []);
+
     return (
         <SuperTokensWrapper>
             <ThemeProvider>

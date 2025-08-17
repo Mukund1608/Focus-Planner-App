@@ -200,50 +200,129 @@
   }
 }
 
-/* Dark mode support */
+/* Advanced Options Styles */
+.advanced-options-toggle {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.btn-toggle {
+  background: none;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto;
+}
+
+.btn-toggle:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.advanced-options {
+  margin-top: 20px;
+  padding: 20px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.form-section {
+  margin-bottom: 24px;
+}
+
+.form-section:last-child {
+  margin-bottom: 0;
+}
+
+.form-section h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  color: #374151;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #3b82f6;
+}
+
+.info-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.info-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.info-box p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #1e40af;
+  line-height: 1.4;
+}
+
+/* Dark mode advanced options */
 @media (prefers-color-scheme: dark) {
-  .task-form-modal {
-    background: #1f2937;
-    color: #f9fafb;
-  }
-
-  .task-form-header {
-    border-bottom-color: #374151;
-  }
-
-  .task-form-header h2 {
-    color: #f9fafb;
-  }
-
-  .form-group label {
+  .btn-toggle {
+    border-color: #4b5563;
     color: #d1d5db;
   }
 
-  .form-group input,
-  .form-group textarea,
-  .form-group select {
-    background: #374151;
-    border-color: #4b5563;
+  .btn-toggle:hover {
+    background-color: #374151;
+    border-color: #6b7280;
+  }
+
+  .advanced-options {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .form-section h3 {
+    color: #f9fafb;
+    border-bottom-color: #374151;
+  }
+
+  .checkbox-label {
     color: #f9fafb;
   }
 
-  .form-group input:focus,
-  .form-group textarea:focus,
-  .form-group select:focus {
-    border-color: #60a5fa;
-    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+  .info-box {
+    background: #1e3a8a;
+    border-color: #3b82f6;
   }
 
-  .form-actions {
-    border-top-color: #374151;
-  }
-
-  .btn-secondary {
-    background-color: #4b5563;
-    color: #f9fafb;
-  }
-
-  .btn-secondary:hover {
-    background-color: #6b7280;
+  .info-box p {
+    color: #93c5fd;
   }
 }

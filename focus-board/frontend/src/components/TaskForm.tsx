@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Task, TaskCreate, TaskUpdate, PriorityLevel, TaskStatus } from '../types/task';
+import { Task, TaskCreate, TaskUpdate, PriorityLevel, TaskStatus, ReminderType, RecurringPattern } from '../types/task';
 import './TaskForm.css';
 
 interface TaskFormProps {
@@ -23,10 +23,16 @@ const TaskForm: React.FC<TaskFormProps> = ({
     priority: PriorityLevel.MEDIUM,
     status: TaskStatus.PENDING,
     due_date: '',
+    reminder_enabled: false,
+    reminder_type: ReminderType.NONE,
+    reminder_advance: '15',
+    is_recurring: false,
+    recurring_pattern: RecurringPattern.NONE,
     ...(isEditing ? {} : { priority_board_id: priorityBoardId })
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
 
   useEffect(() => {
     if (task && isEditing) {
@@ -36,6 +42,11 @@ const TaskForm: React.FC<TaskFormProps> = ({
         priority: task.priority,
         status: task.status,
         due_date: task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : '',
+        reminder_enabled: task.reminder_enabled,
+        reminder_type: task.reminder_type,
+        reminder_advance: task.reminder_advance || '15',
+        is_recurring: task.is_recurring,
+        recurring_pattern: task.recurring_pattern,
       });
     }
   }, [task, isEditing]);
@@ -53,6 +64,11 @@ const TaskForm: React.FC<TaskFormProps> = ({
       newErrors.description = 'Description must be less than 1000 characters';
     }
 
+    // Validate reminder settings
+    if (formData.reminder_enabled && !formData.due_date) {
+      newErrors.reminder = 'Due date is required when reminders are enabled';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -66,10 +82,12 @@ const TaskForm: React.FC<TaskFormProps> = ({
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
+    
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
 
     // Clear error when user starts typing
@@ -166,6 +184,125 @@ const TaskForm: React.FC<TaskFormProps> = ({
               min={new Date().toISOString().split('T')[0]}
             />
           </div>
+
+          {/* Advanced Options Toggle */}
+          <div className="advanced-options-toggle">
+            <button
+              type="button"
+              className="btn-toggle"
+              onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+            >
+              {showAdvancedOptions ? '▼' : '▶'} Advanced Options
+            </button>
+          </div>
+
+          {showAdvancedOptions && (
+            <div className="advanced-options">
+              {/* Reminder Settings */}
+              <div className="form-section">
+                <h3>Reminder Settings</h3>
+                <div className="form-group">
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      name="reminder_enabled"
+                      checked={formData.reminder_enabled || false}
+                      onChange={handleInputChange}
+                    />
+                    Enable Reminder
+                  </label>
+                </div>
+
+                {formData.reminder_enabled && (
+                  <>
+                    <div className="form-group">
+                      <label htmlFor="reminder_type">Reminder Type</label>
+                      <select
+                        id="reminder_type"
+                        name="reminder_type"
+                        value={formData.reminder_type || ReminderType.NONE}
+                        onChange={handleInputChange}
+                      >
+                        {Object.values(ReminderType).map(type => (
+                          <option key={type} value={type}>
+                            {type === ReminderType.NONE ? 'None' :
+                             type === ReminderType.EMAIL ? 'Email' :
+                             type === ReminderType.BROWSER ? 'Browser Notification' :
+                             'Both Email & Browser'}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div className="form-group">
+                      <label htmlFor="reminder_advance">Remind me</label>
+                      <select
+                        id="reminder_advance"
+                        name="reminder_advance"
+                        value={formData.reminder_advance || '15'}
+                        onChange={handleInputChange}
+                      >
+                        <option value="5">5 minutes before</option>
+                        <option value="15">15 minutes before</option>
+                        <option value="30">30 minutes before</option>
+                        <option value="60">1 hour before</option>
+                        <option value="1440">1 day before</option>
+                      </select>
+                    </div>
+                    
+                    {formData.reminder_type === ReminderType.BROWSER || formData.reminder_type === ReminderType.BOTH ? (
+                      <div className="form-group">
+                        <div className="info-box">
+                          <span className="info-icon">ℹ️</span>
+                          <p>Browser notifications will appear even when the app is closed (if permission is granted).</p>
+                        </div>
+                      </div>
+                    ) : null}
+                  </>
+                )}
+              </div>
+
+              {/* Recurring Task Settings */}
+              <div className="form-section">
+                <h3>Recurring Task Settings</h3>
+                <div className="form-group">
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      name="is_recurring"
+                      checked={formData.is_recurring || false}
+                      onChange={handleInputChange}
+                    />
+                    Make this a recurring task
+                  </label>
+                </div>
+
+                {formData.is_recurring && (
+                  <div className="form-group">
+                    <label htmlFor="recurring_pattern">Recurring Pattern</label>
+                    <select
+                      id="recurring_pattern"
+                      name="recurring_pattern"
+                      value={formData.recurring_pattern || RecurringPattern.NONE}
+                      onChange={handleInputChange}
+                    >
+                      {Object.values(RecurringPattern).map(pattern => (
+                        <option key={pattern} value={pattern}>
+                          {pattern === RecurringPattern.NONE ? 'None' :
+                           pattern === RecurringPattern.DAILY ? 'Daily' :
+                           pattern === RecurringPattern.WEEKLY ? 'Weekly' :
+                           pattern === RecurringPattern.MONTHLY ? 'Monthly' :
+                           'Custom'}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {errors.reminder && <span className="error-message">{errors.reminder}</span>}
 
           <div className="form-actions">
             <button type="button" className="btn-secondary" onClick={onCancel}>

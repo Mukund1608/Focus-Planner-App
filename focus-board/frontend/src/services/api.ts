@@ -6,7 +6,10 @@ import {
   PriorityBoardCreate, 
   PriorityBoardUpdate,
   TaskReorderRequest,
-  TaskBulkUpdateRequest
+  TaskBulkUpdateRequest,
+  CreateRecurringTaskRequest,
+  RecurringConfig,
+  ReminderConfig
 } from '../types/task';
 
 const API_BASE_URL = 'http://localhost:5000/api';
@@ -105,4 +108,40 @@ export const taskAPI = {
 
   getByWeek: (startDate: string): Promise<Task[]> =>
     apiCall<Task[]>(`/tasks/by-week/${startDate}`),
+
+  // Recurring task methods
+  createRecurring: (data: CreateRecurringTaskRequest): Promise<Task> =>
+    apiCall<Task>('/tasks/recurring', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getRecurring: (): Promise<Task[]> =>
+    apiCall<Task[]>('/tasks/recurring'),
+
+  getTaskOccurrences: (parentTaskId: number): Promise<Task[]> =>
+    apiCall<Task[]>(`/tasks/recurring/${parentTaskId}/occurrences`),
+
+  processRecurring: (): Promise<{ message: string; created_tasks: Task[] }> =>
+    apiCall<{ message: string; created_tasks: Task[] }>('/tasks/recurring/process', {
+      method: 'POST',
+    }),
+
+  // Reminder methods
+  getTasksWithReminders: (): Promise<Task[]> =>
+    apiCall<Task[]>('/tasks/reminders'),
+
+  getPendingReminders: (): Promise<Task[]> =>
+    apiCall<Task[]>('/tasks/reminders/pending'),
+
+  markReminderSent: (taskId: number): Promise<{ message: string }> =>
+    apiCall<{ message: string }>(`/tasks/${taskId}/reminder/sent`, {
+      method: 'POST',
+    }),
+
+  configureReminder: (taskId: number, config: ReminderConfig): Promise<{ message: string; task: Task }> =>
+    apiCall<{ message: string; task: Task }>(`/tasks/${taskId}/reminder/configure`, {
+      method: 'POST',
+      body: JSON.stringify(config),
+    }),
 };

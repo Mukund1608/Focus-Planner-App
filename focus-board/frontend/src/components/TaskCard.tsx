@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Task, PriorityLevel, TaskStatus } from '../types/task';
+import { Task, PriorityLevel, TaskStatus, ReminderType, RecurringPattern } from '../types/task';
 import { format } from 'date-fns';
 import './TaskCard.css';
 
@@ -68,6 +68,9 @@ const TaskCard: React.FC<TaskCardProps> = ({
     onStatusChange(task.id, newStatus);
   };
 
+  const hasReminder = task.reminder_enabled && task.reminder_type !== ReminderType.NONE;
+  const isRecurring = task.is_recurring && task.recurring_pattern !== RecurringPattern.NONE;
+
   return (
     <div className="task-card" style={{ borderLeftColor: getPriorityColor(task.priority) }}>
       <div className="task-card-header">
@@ -77,6 +80,18 @@ const TaskCard: React.FC<TaskCardProps> = ({
             style={{ backgroundColor: getPriorityColor(task.priority) }}
           />
           <span className="priority-label">{getPriorityLabel(task.priority)}</span>
+        </div>
+        <div className="task-features">
+          {hasReminder && (
+            <span className="feature-indicator reminder" title="Has reminder">
+              ⏰
+            </span>
+          )}
+          {isRecurring && (
+            <span className="feature-indicator recurring" title="Recurring task">
+              🔄
+            </span>
+          )}
         </div>
         <div className="task-actions">
           <button 
@@ -133,6 +148,31 @@ const TaskCard: React.FC<TaskCardProps> = ({
             </div>
           )}
         </div>
+
+        {/* Show reminder and recurring info if expanded */}
+        {isExpanded && (hasReminder || isRecurring) && (
+          <div className="task-features-details">
+            {hasReminder && (
+              <div className="feature-detail">
+                <span className="feature-icon">⏰</span>
+                <span className="feature-text">
+                  Reminder: {task.reminder_type === ReminderType.BROWSER ? 'Browser' : 
+                           task.reminder_type === ReminderType.EMAIL ? 'Email' : 'Both'}
+                </span>
+              </div>
+            )}
+            {isRecurring && (
+              <div className="feature-detail">
+                <span className="feature-icon">🔄</span>
+                <span className="feature-text">
+                  Repeats: {task.recurring_pattern === RecurringPattern.DAILY ? 'Daily' :
+                           task.recurring_pattern === RecurringPattern.WEEKLY ? 'Weekly' :
+                           task.recurring_pattern === RecurringPattern.MONTHLY ? 'Monthly' : 'Custom'}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="task-footer">
           <span className="task-position">Position: {task.position + 1}</span>

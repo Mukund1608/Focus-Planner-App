@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PriorityBoards from '../components/PriorityBoards';
 import DailyView from '../components/DailyView';
 import WeeklyView from '../components/WeeklyView';
-import TestTaskCreator from '../components/TestTaskCreator';
+import Settings from '../components/Settings';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -11,7 +11,7 @@ export default function Dashboard() {
     // Load active tab from localStorage on component mount
     useEffect(() => {
         const savedTab = localStorage.getItem('focusboard-active-tab');
-        if (savedTab && ['daily', 'weekly', 'priority', 'habits', 'focus'].includes(savedTab)) {
+        if (savedTab && ['daily', 'weekly', 'priority', 'habits', 'focus', 'settings'].includes(savedTab)) {
             setActiveTab(savedTab);
         }
     }, []);
@@ -28,7 +28,7 @@ export default function Dashboard() {
         { id: 'priority', label: 'Priority Board', icon: '🎯' },
         { id: 'habits', label: 'Habits', icon: '🔄' },
         { id: 'focus', label: 'Focus Mode', icon: '🎧' },
-        { id: 'test', label: 'Test', icon: '🧪' }
+        { id: 'settings', label: 'Settings', icon: '⚙️' }
     ];
 
     const renderTabContent = () => {
@@ -39,6 +39,8 @@ export default function Dashboard() {
                 return <WeeklyView />;
             case 'priority':
                 return <PriorityBoards />;
+            case 'settings':
+                return <Settings />;
             case 'habits':
                 return (
                     <div className="habits-view">
@@ -65,8 +67,6 @@ export default function Dashboard() {
                         </div>
                     </div>
                 );
-            case 'test':
-                return <TestTaskCreator />;
             default:
                 return null;
         }

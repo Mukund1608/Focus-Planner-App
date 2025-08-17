@@ -38,7 +38,7 @@ This project aims to demonstrate how to integrate SuperTokens into a React appli
 
 #### Vite
 
-Given that the project is a standard Vite project, everything available in the [Vite configuration docs](https://vite.dev/config/) is available to use here (refer to the `vite.config.ts` file). The only customization we've done is changing the port to `3000`.
+Given that the project is a standard Vite project, everything available in the [Vite configuration docs](https://vite.dev/config/) is available to use here (refer to the `vite.config.ts` file). The only customization we've done is changing the port to `3001`.
 
 #### SuperTokens
 
