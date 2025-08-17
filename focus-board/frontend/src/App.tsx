@@ -9,6 +9,7 @@ import { PreBuiltUIList, ComponentWrapper } from "./config";
 import Home from "./Home";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import AppLayout from "./components/AppLayout";
+import FocusMode from "./components/FocusMode";
 import { notificationService } from "./services/notificationService";
 
 function App() {
@@ -73,6 +74,16 @@ function App() {
                                                         <h1>Settings</h1>
                                                         <p>User preferences and app settings will be configured here.</p>
                                                     </div>
+                                                </AppLayout>
+                                            </SessionAuth>
+                                        }
+                                    />
+                                    <Route
+                                        path="/focus"
+                                        element={
+                                            <SessionAuth>
+                                                <AppLayout>
+                                                    <FocusMode />
                                                 </AppLayout>
                                             </SessionAuth>
                                         }

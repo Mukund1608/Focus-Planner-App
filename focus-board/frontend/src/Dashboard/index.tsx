@@ -3,6 +3,7 @@ import PriorityBoards from '../components/PriorityBoards';
 import DailyView from '../components/DailyView';
 import WeeklyView from '../components/WeeklyView';
 import Settings from '../components/Settings';
+import FocusMode from '../components/FocusMode';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -55,18 +56,7 @@ export default function Dashboard() {
                     </div>
                 );
             case 'focus':
-                return (
-                    <div className="focus-view">
-                        <h2>Focus Mode</h2>
-                        <div className="placeholder-content">
-                            <p>Enter deep work mode with focused task management</p>
-                            <div className="placeholder-card">
-                                <span className="placeholder-icon">🎧</span>
-                                <p>Enable focus mode to get things done</p>
-                            </div>
-                        </div>
-                    </div>
-                );
+                return <FocusMode />;
             default:
                 return null;
         }

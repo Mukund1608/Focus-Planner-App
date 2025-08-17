@@ -46,6 +46,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     { path: '/', label: 'Home', icon: '🏠' },
     { path: '/dashboard', label: 'Daily', icon: '📅' },
     { path: '/weekly', label: 'Weekly', icon: '📊' },
+    { path: '/focus', label: 'Focus Mode', icon: '🎧' },
     { path: '/settings', label: 'Settings', icon: '⚙️' },
   ];
 
