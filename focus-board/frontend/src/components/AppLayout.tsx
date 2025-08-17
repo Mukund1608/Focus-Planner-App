@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { signOut } from 'supertokens-auth-react/recipe/session';
+import { signOut, useSessionContext } from 'supertokens-auth-react/recipe/session';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import './AppLayout.css';
@@ -13,6 +13,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isDarkMode, toggleTheme } = useTheme();
+  const session = useSessionContext();
 
   const getIsDesktop = () => (typeof window !== 'undefined' ? window.innerWidth > 1024 : true);
 
@@ -32,11 +33,17 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   }, []);
 
   const handleLogout = async () => {
-    await signOut();
-    navigate('/');
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      // If not logged in, just navigate to home
+      navigate('/');
+    }
   };
 
   const navItems = [
+    { path: '/', label: 'Home', icon: '🏠' },
     { path: '/dashboard', label: 'Daily', icon: '📅' },
     { path: '/weekly', label: 'Weekly', icon: '📊' },
     { path: '/settings', label: 'Settings', icon: '⚙️' },
@@ -83,10 +90,17 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           <button className="theme-toggle" onClick={toggleTheme}>
             {isDarkMode ? '☀️' : '🌙'}
           </button>
-          <button className="logout-btn" onClick={handleLogout}>
-            <span className="logout-icon">🚪</span>
-            <span className="logout-label">Logout</span>
-          </button>
+          {session.doesSessionExist ? (
+            <button className="logout-btn" onClick={handleLogout}>
+              <span className="logout-icon">🚪</span>
+              <span className="logout-label">Logout</span>
+            </button>
+          ) : (
+            <Link to="/auth" className="login-btn">
+              <span className="login-icon">🔐</span>
+              <span className="login-label">Login</span>
+            </Link>
+          )}
         </div>
       </aside>
 
@@ -97,24 +111,43 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       <main className="main-content">
         <header className="top-header">
           <div className="header-content">
-            <button
-              className="hamburger-btn"
-              aria-label="Toggle menu"
-              onClick={() => setIsSidebarOpen((v) => !v)}
-            >
-              {isSidebarOpen ? '✕' : '☰'}
-            </button>
+            <div className="header-left">
+              <button
+                className="hamburger-btn"
+                aria-label="Toggle menu"
+                onClick={() => setIsSidebarOpen((v) => !v)}
+              >
+                {isSidebarOpen ? '✕' : '☰'}
+              </button>
+              {location.pathname !== '/' && (
+                <Link to="/" className="home-link">
+                  <span className="home-icon">🏠</span>
+                  <span className="home-text">Back to Home</span>
+                </Link>
+              )}
+            </div>
             <h2 className="page-title">
-              {navItems.find(item => item.path === location.pathname)?.label || 'Dashboard'}
+              {location.pathname === '/' ? 'Focus Planner' : navItems.find(item => item.path === location.pathname)?.label || 'Dashboard'}
             </h2>
             <div className="user-info">
               <span className="user-avatar">👤</span>
-              <span className="user-name">User</span>
+              <span className="user-name">
+                {session.doesSessionExist ? 'User' : 'Preview Mode'}
+              </span>
             </div>
           </div>
         </header>
 
         <div className="content-area">
+          {!session.doesSessionExist && (
+            <div className="preview-banner">
+              <div className="preview-content">
+                <span className="preview-icon">👀</span>
+                <span className="preview-text">You're in preview mode. Login to save your progress and access all features.</span>
+                <Link to="/auth" className="preview-login-btn">Login Now</Link>
+              </div>
+            </div>
+          )}
           {children}
         </div>
       </main>

@@ -166,6 +166,78 @@
   font-weight: 500;
 }
 
+/* Login Button Styles */
+.login-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-sidebar);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.login-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-sidebar);
+}
+
+.login-icon {
+  font-size: 1rem;
+}
+
+.login-label {
+  font-weight: 500;
+}
+
+/* Preview Banner Styles */
+.preview-banner {
+  background: linear-gradient(135deg, #ff9933, #ff8a15);
+  color: white;
+  padding: 1rem 2rem;
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(255, 153, 51, 0.3);
+}
+
+.preview-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.preview-icon {
+  font-size: 1.5rem;
+}
+
+.preview-text {
+  flex: 1;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.preview-login-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.preview-login-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+  transform: translateY(-1px);
+}
+
 /* Main Content Styles */
 .main-content {
   flex: 1;
@@ -188,6 +260,46 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.home-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--primary-color, #ff9933);
+  color: white;
+  text-decoration: none;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.home-link:hover {
+  background: var(--primary-hover, #ff8a15);
+  transform: translateY(-1px);
+  color: white;
+}
+
+.home-icon {
+  font-size: 1rem;
+}
+
+.home-text {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .home-text {
+    display: inline;
+  }
 }
 
 .page-title {
@@ -249,6 +361,15 @@
     gap: 1rem;
     align-items: flex-start;
   }
+
+  .header-left {
+    gap: 0.5rem;
+  }
+
+  .home-link {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -302,7 +423,8 @@
 
 .sidebar.hidden .brand-title,
 .sidebar.hidden .nav-label,
-.sidebar.hidden .logout-label {
+.sidebar.hidden .logout-label,
+.sidebar.hidden .login-label {
   display: none;
 }
 
@@ -334,5 +456,19 @@
 
   .page-title {
     font-size: 1.25rem;
+  }
+
+  .preview-banner {
+    padding: 1rem;
+  }
+
+  .preview-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+
+  .preview-text {
+    font-size: 0.9rem;
   }
 }

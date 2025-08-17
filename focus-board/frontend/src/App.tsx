@@ -1,7 +1,7 @@
 import { SuperTokensWrapper } from "supertokens-auth-react";
 import { getSuperTokensRoutesForReactRouterDom } from "supertokens-auth-react/ui";
 import { SessionAuth } from "supertokens-auth-react/recipe/session";
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import * as ReactRouter from "react-router-dom";
 import { useEffect } from "react";
 import Dashboard from "./Dashboard";
@@ -23,25 +23,6 @@ function App() {
             <ThemeProvider>
                 <BrowserRouter>
                     <main className="App app-container">
-                        <header>
-                            <nav className="header-container">
-                                <Link to="/" className="brand">
-                                    <img src="/assets/images/guide-icon.svg" alt="FocusBoard" />
-                                    <span>FocusBoard</span>
-                                </Link>
-                                <ul className="header-container-right">
-                                    <li>
-                                        <Link to="/">Home</Link>
-                                    </li>
-                                    <li>
-                                        <Link to="/dashboard">Dashboard</Link>
-                                    </li>
-                                    <li>
-                                        <Link to="/auth">Login</Link>
-                                    </li>
-                                </ul>
-                            </nav>
-                        </header>
                         <div className="fill" id="home-container">
                             <ComponentWrapper>
                                 <Routes>
@@ -49,9 +30,19 @@ function App() {
                                     {/* This shows the login UI on "/auth" route */}
                                     {getSuperTokensRoutesForReactRouterDom(ReactRouter, PreBuiltUIList)}
 
-                                    {/* Protected routes with AppLayout */}
+                                    {/* Preview dashboard route - no authentication required */}
                                     <Route
                                         path="/dashboard"
+                                        element={
+                                            <AppLayout>
+                                                <Dashboard />
+                                            </AppLayout>
+                                        }
+                                    />
+
+                                    {/* Protected routes with authentication */}
+                                    <Route
+                                        path="/app"
                                         element={
                                             <SessionAuth>
                                                 <AppLayout>
@@ -88,7 +79,6 @@ function App() {
                                     />
                                 </Routes>
                             </ComponentWrapper>
-                            <img className="separator-line" src="/assets/images/separator-line.svg" alt="separator" />
                         </div>
                     </main>
                 </BrowserRouter>
