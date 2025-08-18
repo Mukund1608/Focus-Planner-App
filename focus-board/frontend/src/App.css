@@ -13,6 +13,36 @@
     --text-secondary: #666666;
     --shadow-light: rgba(0, 0, 0, 0.1);
     --shadow-medium: rgba(0, 0, 0, 0.15);
+    --font-scale: 1;
+}
+
+html, body, .App {
+  font-size: calc(16px * var(--font-scale));
+}
+
+/* High contrast theme overrides */
+body.high-contrast {
+  --bg-primary: #000 !important;
+  --bg-secondary: #111 !important;
+  --bg-sidebar: #000 !important;
+  --text-primary: #fff !important;
+  --text-secondary: #e0e0e0 !important;
+  --text-sidebar: #fff !important;
+  --border-color: #fff !important;
+  --hover-bg: #222 !important;
+  --active-bg: #ffcc00 !important;
+  --active-text: #000 !important;
+}
+
+/* Improved focus states */
+:focus-visible {
+  outline: 3px solid #ff9933;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+a:focus-visible, button:focus-visible, input:focus-visible {
+  box-shadow: 0 0 0 3px rgba(255, 153, 51, 0.6);
 }
 
 /* Dark theme variables */
