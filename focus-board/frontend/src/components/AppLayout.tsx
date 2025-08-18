@@ -46,8 +46,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     { path: '/', label: 'Home', icon: '🏠' },
     { path: '/dashboard', label: 'Daily', icon: '📅' },
     { path: '/weekly', label: 'Weekly', icon: '📊' },
+    { path: '/priority', label: 'Priority Board', icon: '🎯' },
+    { path: '/habits', label: 'Habits', icon: '🔄' },
     { path: '/focus', label: 'Focus Mode', icon: '🎧' },
     { path: '/settings', label: 'Settings', icon: '⚙️' },
+    { path: '/notification-test', label: 'Test Notifications', icon: '🔔' },
   ];
 
   const closeSidebarOnNavigate = () => {
@@ -128,7 +131,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
               )}
             </div>
             <h2 className="page-title">
-              {location.pathname === '/' ? 'Focus Planner' : navItems.find(item => item.path === location.pathname)?.label || 'Dashboard'}
+              {location.pathname === '/' ? 'FocusBoard' : navItems.find(item => item.path === location.pathname)?.label || 'Dashboard'}
             </h2>
             <div className="user-info">
               <span className="user-avatar">👤</span>

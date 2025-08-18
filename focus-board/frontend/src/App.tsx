@@ -5,13 +5,17 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import * as ReactRouter from "react-router-dom";
 import { useEffect } from "react";
 import Dashboard from "./Dashboard";
-import { PreBuiltUIList, ComponentWrapper } from "./config";
+import { PreBuiltUIList, ComponentWrapper, SuperTokensConfig } from "./config";
 import Home from "./Home";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import AppLayout from "./components/AppLayout";
 import FocusMode from "./components/FocusMode";
 import Settings from "./components/Settings";
 import NotificationTest from "./components/NotificationTest";
+import PriorityBoards from "./components/PriorityBoards";
+import HabitTracker from "./components/HabitTracker";
+import WeeklyView from "./components/WeeklyView";
+import DailyView from "./components/DailyView";
 import { notificationService } from "./services/notificationService";
 
 function App() {
@@ -22,7 +26,7 @@ function App() {
     }, []);
 
     return (
-        <SuperTokensWrapper>
+        <SuperTokensWrapper config={SuperTokensConfig}>
             <ThemeProvider>
                 <BrowserRouter>
                     <main className="App app-container">
@@ -30,22 +34,12 @@ function App() {
                             <ComponentWrapper>
                                 <Routes>
                                     <Route path="/" element={<Home />} />
-                                    {/* This shows the login UI on "/auth" route */}
+                                    {/* SuperTokens authentication routes */}
                                     {getSuperTokensRoutesForReactRouterDom(ReactRouter, PreBuiltUIList)}
 
-                                    {/* Preview dashboard route - no authentication required */}
+                                    {/* Protected routes - require authentication */}
                                     <Route
                                         path="/dashboard"
-                                        element={
-                                            <AppLayout>
-                                                <Dashboard />
-                                            </AppLayout>
-                                        }
-                                    />
-
-                                    {/* Protected routes with authentication */}
-                                    <Route
-                                        path="/app"
                                         element={
                                             <SessionAuth>
                                                 <AppLayout>
@@ -59,10 +53,37 @@ function App() {
                                         element={
                                             <SessionAuth>
                                                 <AppLayout>
-                                                    <div className="placeholder-page">
-                                                        <h1>Weekly View</h1>
-                                                        <p>Weekly planning and overview will be implemented here.</p>
-                                                    </div>
+                                                    <WeeklyView />
+                                                </AppLayout>
+                                            </SessionAuth>
+                                        }
+                                    />
+                                    <Route
+                                        path="/priority"
+                                        element={
+                                            <SessionAuth>
+                                                <AppLayout>
+                                                    <PriorityBoards />
+                                                </AppLayout>
+                                            </SessionAuth>
+                                        }
+                                    />
+                                    <Route
+                                        path="/habits"
+                                        element={
+                                            <SessionAuth>
+                                                <AppLayout>
+                                                    <HabitTracker />
+                                                </AppLayout>
+                                            </SessionAuth>
+                                        }
+                                    />
+                                    <Route
+                                        path="/focus"
+                                        element={
+                                            <SessionAuth>
+                                                <AppLayout>
+                                                    <FocusMode />
                                                 </AppLayout>
                                             </SessionAuth>
                                         }
@@ -87,16 +108,8 @@ function App() {
                                             </SessionAuth>
                                         }
                                     />
-                                    <Route
-                                        path="/focus"
-                                        element={
-                                            <SessionAuth>
-                                                <AppLayout>
-                                                    <FocusMode />
-                                                </AppLayout>
-                                            </SessionAuth>
-                                        }
-                                    />
+
+
                                 </Routes>
                             </ComponentWrapper>
                         </div>

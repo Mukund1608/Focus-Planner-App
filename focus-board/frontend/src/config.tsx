@@ -7,14 +7,14 @@ import Session from "supertokens-auth-react/recipe/session";
 
 
 export function getApiDomain() {
-    const apiPort = 5000;
-    const apiUrl = `http://localhost:${apiPort}`;
+    const apiPort = import.meta.env.VITE_API_PORT || 5000;
+    const apiUrl = import.meta.env.VITE_API_URL || `http://localhost:${apiPort}`;
     return apiUrl;
 }
 
 export function getWebsiteDomain() {
-    const websitePort = 3001;
-    const websiteUrl = `http://localhost:${websitePort}`;
+    const websitePort = import.meta.env.VITE_WEBSITE_PORT || 3001;
+    const websiteUrl = import.meta.env.VITE_WEBSITE_URL || `http://localhost:${websitePort}`;
     return websiteUrl;
 }
 
@@ -30,10 +30,15 @@ export const SuperTokensConfig = {
     },
     
     recipeList: [
-        EmailPassword.init(),
+        EmailPassword.init({
+            signInAndUpFeature: {
+                defaultToSignUp: true,
+            },
+        }),
         Session.init()
     ],
     getRedirectionURL: async (context: any) => {
+        console.log("Redirection context:", context);
         if (context.action === "SUCCESS") {
             return "/dashboard";
         }

@@ -1,20 +1,25 @@
 import uvicorn
+import os
+from dotenv import load_dotenv
 
 from fastapi import FastAPI, Depends
 from starlette.middleware.cors import CORSMiddleware
 
-from supertokens_python import init, get_all_cors_headers
+# Load environment variables
+load_dotenv()
+
+# Import SuperTokens config first to ensure initialization
+import config
+
+from supertokens_python import get_all_cors_headers
 from supertokens_python.framework.fastapi import get_middleware
 from supertokens_python.recipe.session import SessionContainer
 from supertokens_python.recipe.session.framework.fastapi import verify_session
 from supertokens_python.recipe.multitenancy.asyncio import list_all_tenants
 from supertokens_python.recipe.usermetadata.asyncio import get_user_metadata
 
-import config
 from database import create_tables
 from api import router as tasks_router
-
-# SuperTokens init should happen in config.py
 
 app = FastAPI(
     title="FocusBoard API",
@@ -24,6 +29,7 @@ app = FastAPI(
     redirect_slashes=False
 )
 
+# Add SuperTokens middleware first
 app.add_middleware(get_middleware())
 
 # Include the tasks API router
@@ -83,9 +89,10 @@ async def startup_event():
     create_tables()
 
 # Add CORS middleware
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3001").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001", config.app_info.website_domain],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "PUT", "POST", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["Content-Type", "Authorization", "X-Requested-With"] + get_all_cors_headers(),

@@ -248,13 +248,13 @@ const Settings: React.FC = () => {
                 }
               </p>
 
-              {notificationPermission === 'default' && (
-                <button onClick={requestNotificationPermission} className="btn-primary">
-                  Enable Notifications
-                </button>
-              )}
+                {notificationPermission === 'default' && (
+                  <button onClick={requestNotificationPermission} className="btn-primary">
+                    Enable Notifications
+                  </button>
+                )}
 
-              {notificationPermission === 'denied' && (
+                {notificationPermission === 'denied' && (
                 <div className="permission-help">
                   <p>To enable notifications:</p>
                   <ol>
@@ -391,8 +391,8 @@ const Settings: React.FC = () => {
                         />
                         <span className="toggle-slider"></span>
                       </label>
-                    </div>
-                  </div>
+              </div>
+            </div>
                 </div>
 
                 <div className="notification-test">
@@ -435,7 +435,7 @@ const Settings: React.FC = () => {
             {pendingReminders.length > 0 && (
               <div className="pending-reminders">
                 <div className="reminders-header">
-                  <h4>Pending Reminders ({pendingReminders.length})</h4>
+                <h4>Pending Reminders ({pendingReminders.length})</h4>
                   <button 
                     onClick={clearAllReminders}
                     disabled={loading}

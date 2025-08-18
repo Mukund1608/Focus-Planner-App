@@ -37,7 +37,7 @@ export default function Home() {
                         
                         <div className="hero-actions">
                             {session.doesSessionExist ? (
-                                <Link to="/app" className="cta-button primary">
+                                <Link to="/dashboard" className="cta-button primary">
                                     <span>🚀</span>
                                     Go to Dashboard
                                 </Link>
