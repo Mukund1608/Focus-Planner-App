@@ -2,6 +2,9 @@ class NotificationService {
   private static instance: NotificationService;
   private permission: NotificationPermission = 'default';
   private checkInterval: number | null = null;
+  private isInitialized: boolean = false;
+  private notificationQueue: Array<{title: string, options?: NotificationOptions}> = [];
+  private maxQueueSize: number = 10;
 
   private constructor() {
     this.init();
@@ -17,9 +20,15 @@ class NotificationService {
   private async init(): Promise<void> {
     if (this.isSupported()) {
       this.permission = Notification.permission;
+      this.isInitialized = true;
       
       // Set up periodic checking for reminders
       this.startPeriodicChecking();
+      
+      // Process any queued notifications if permission was granted
+      if (this.permission === 'granted') {
+        this.processNotificationQueue();
+      }
       
       console.log('NotificationService initialized with permission:', this.permission);
     } else {
@@ -36,6 +45,12 @@ class NotificationService {
     try {
       const permission = await Notification.requestPermission();
       this.permission = permission;
+      
+      if (permission === 'granted') {
+        this.processNotificationQueue();
+        this.startPeriodicChecking();
+      }
+      
       return permission === 'granted';
     } catch (error) {
       console.error('Error requesting notification permission:', error);
@@ -50,6 +65,8 @@ class NotificationService {
     }
     
     if (this.permission !== 'granted') {
+      // Queue the notification for later if permission is not granted
+      this.queueNotification(title, options);
       console.warn('Cannot show notification: permission not granted. Current permission:', this.permission);
       return;
     }
@@ -60,33 +77,81 @@ class NotificationService {
         badge: '/favicon.ico',
         requireInteraction: false,
         silent: false,
+        vibrate: [200, 100, 200], // Vibration pattern for mobile devices
         ...options
       });
 
-      // Auto-close after 10 seconds
+      // Auto-close after 8 seconds (reduced from 10 for better UX)
       setTimeout(() => {
         notification.close();
-      }, 10000);
+      }, 8000);
 
       // Handle notification click
-      notification.onclick = () => {
+      notification.onclick = (event) => {
+        event.preventDefault();
         window.focus();
+        
+        // Handle custom actions if defined
+        if (options?.actions && event.action) {
+          this.handleNotificationAction(event.action, options.data);
+        }
+        
         notification.close();
+      };
+
+      // Handle notification close
+      notification.onclose = () => {
+        console.log('Notification closed:', title);
       };
 
       console.log('Notification shown successfully:', title);
 
     } catch (error) {
       console.error('Error showing notification:', error);
-      throw error; // Re-throw to allow calling code to handle
+      throw error;
     }
   }
 
-  async showTaskReminder(taskTitle: string, dueDate: string): Promise<void> {
+  private queueNotification(title: string, options?: NotificationOptions): void {
+    if (this.notificationQueue.length >= this.maxQueueSize) {
+      this.notificationQueue.shift(); // Remove oldest notification
+    }
+    this.notificationQueue.push({ title, options });
+  }
+
+  private processNotificationQueue(): void {
+    while (this.notificationQueue.length > 0) {
+      const notification = this.notificationQueue.shift();
+      if (notification) {
+        this.showNotification(notification.title, notification.options);
+      }
+    }
+  }
+
+  private handleNotificationAction(action: string, data?: any): void {
+    switch (action) {
+      case 'view':
+        // Navigate to the task or relevant page
+        if (data?.taskId) {
+          // You can implement navigation logic here
+          console.log('Navigate to task:', data.taskId);
+        }
+        break;
+      case 'dismiss':
+        // Notification was dismissed, no action needed
+        console.log('Notification dismissed');
+        break;
+      default:
+        console.log('Unknown notification action:', action);
+    }
+  }
+
+  async showTaskReminder(taskTitle: string, dueDate: string, taskId?: number): Promise<void> {
     const dueDateObj = new Date(dueDate);
     const timeUntilDue = dueDateObj.getTime() - Date.now();
     
     let message = `Task "${taskTitle}" is due soon!`;
+    let icon = '⏰';
     
     if (timeUntilDue > 0) {
       const hours = Math.floor(timeUntilDue / (1000 * 60 * 60));
@@ -99,12 +164,14 @@ class NotificationService {
       }
     } else {
       message = `Task "${taskTitle}" is overdue!`;
+      icon = '⚠️';
     }
 
-    await this.showNotification('Task Reminder', {
+    await this.showNotification(`${icon} Task Reminder`, {
       body: message,
-      tag: `task-reminder-${taskTitle}`,
+      tag: `task-reminder-${taskId || taskTitle}`,
       requireInteraction: true,
+      data: { taskId },
       actions: [
         {
           action: 'view',
@@ -121,7 +188,7 @@ class NotificationService {
   async showRecurringTaskCreated(taskTitle: string, nextDueDate: string): Promise<void> {
     const message = `New recurring task "${taskTitle}" created for ${new Date(nextDueDate).toLocaleDateString()}`;
     
-    await this.showNotification('Recurring Task Created', {
+    await this.showNotification('🔄 Recurring Task Created', {
       body: message,
       tag: `recurring-task-${taskTitle}`,
       requireInteraction: false
@@ -129,26 +196,65 @@ class NotificationService {
   }
 
   async showTaskCompleted(taskTitle: string): Promise<void> {
-    await this.showNotification('Task Completed! 🎉', {
+    await this.showNotification('🎉 Task Completed!', {
       body: `Great job! You've completed "${taskTitle}"`,
       tag: `task-completed-${taskTitle}`,
+      requireInteraction: false,
+      vibrate: [100, 200, 100] // Different vibration for completion
+    });
+  }
+
+  async showTaskOverdue(taskTitle: string, taskId?: number): Promise<void> {
+    await this.showNotification('⚠️ Task Overdue!', {
+      body: `The task "${taskTitle}" is overdue. Please update its status.`,
+      tag: `task-overdue-${taskId || taskTitle}`,
+      requireInteraction: true,
+      data: { taskId },
+      actions: [
+        {
+          action: 'view',
+          title: 'View Task'
+        },
+        {
+          action: 'dismiss',
+          title: 'Dismiss'
+        }
+      ]
+    });
+  }
+
+  async showHabitReminder(habitTitle: string, streak: number): Promise<void> {
+    const message = streak > 0 
+      ? `Keep your ${streak}-day streak going! Complete "${habitTitle}" today.`
+      : `Time to start building a streak! Complete "${habitTitle}" today.`;
+    
+    await this.showNotification('🔥 Habit Reminder', {
+      body: message,
+      tag: `habit-reminder-${habitTitle}`,
       requireInteraction: false
     });
   }
 
-  async showTaskOverdue(taskTitle: string): Promise<void> {
-    await this.showNotification('Task Overdue! ⚠️', {
-      body: `The task "${taskTitle}" is overdue. Please update its status.`,
-      tag: `task-overdue-${taskTitle}`,
-      requireInteraction: true
-    });
+  async showStreakMilestone(habitTitle: string, streak: number): Promise<void> {
+    const milestones = [7, 30, 100, 365];
+    if (milestones.includes(streak)) {
+      await this.showNotification('🏆 Streak Milestone!', {
+        body: `Congratulations! You've maintained "${habitTitle}" for ${streak} days!`,
+        tag: `streak-milestone-${habitTitle}`,
+        requireInteraction: false,
+        vibrate: [200, 100, 200, 100, 200] // Special vibration for milestones
+      });
+    }
   }
 
   private startPeriodicChecking(): void {
-    // Check for reminders every 5 minutes
+    // Stop any existing interval
+    this.stopPeriodicChecking();
+    
+    // Check for reminders every 2 minutes (more frequent for better UX)
     this.checkInterval = window.setInterval(() => {
       this.checkForReminders();
-    }, 5 * 60 * 1000);
+    }, 2 * 60 * 1000);
 
     // Also check when the page becomes visible
     document.addEventListener('visibilitychange', () => {
@@ -156,6 +262,9 @@ class NotificationService {
         this.checkForReminders();
       }
     });
+
+    // Check immediately on start
+    this.checkForReminders();
   }
 
   private async checkForReminders(): Promise<void> {
@@ -171,7 +280,7 @@ class NotificationService {
       
       for (const reminder of pendingReminders) {
         if (reminder.reminder_type === ReminderType.BROWSER || reminder.reminder_type === ReminderType.BOTH) {
-          await this.showTaskReminder(reminder.title, reminder.due_date || '');
+          await this.showTaskReminder(reminder.title, reminder.due_date || '', reminder.id);
           
           // Mark reminder as sent
           await taskAPI.markReminderSent(reminder.id);
@@ -203,8 +312,30 @@ class NotificationService {
   }
 
   // Method to check if service is properly initialized
-  isInitialized(): boolean {
-    return this.isSupported() && this.permission !== 'default';
+  isServiceInitialized(): boolean {
+    return this.isInitialized;
+  }
+
+  // Method to get notification queue status
+  getQueueStatus(): { length: number; maxSize: number } {
+    return {
+      length: this.notificationQueue.length,
+      maxSize: this.maxQueueSize
+    };
+  }
+
+  // Method to clear notification queue
+  clearQueue(): void {
+    this.notificationQueue = [];
+  }
+
+  // Method to test notification with custom settings
+  async testNotification(message: string = 'Test notification'): Promise<void> {
+    await this.showNotification('🧪 Test Notification', {
+      body: message,
+      tag: 'test-notification',
+      requireInteraction: false
+    });
   }
 }
 

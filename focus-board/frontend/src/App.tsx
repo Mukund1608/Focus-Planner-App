@@ -10,6 +10,8 @@ import Home from "./Home";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import AppLayout from "./components/AppLayout";
 import FocusMode from "./components/FocusMode";
+import Settings from "./components/Settings";
+import NotificationTest from "./components/NotificationTest";
 import { notificationService } from "./services/notificationService";
 
 function App() {
@@ -70,10 +72,17 @@ function App() {
                                         element={
                                             <SessionAuth>
                                                 <AppLayout>
-                                                    <div className="placeholder-page">
-                                                        <h1>Settings</h1>
-                                                        <p>User preferences and app settings will be configured here.</p>
-                                                    </div>
+                                                    <Settings />
+                                                </AppLayout>
+                                            </SessionAuth>
+                                        }
+                                    />
+                                    <Route
+                                        path="/notification-test"
+                                        element={
+                                            <SessionAuth>
+                                                <AppLayout>
+                                                    <NotificationTest />
                                                 </AppLayout>
                                             </SessionAuth>
                                         }
