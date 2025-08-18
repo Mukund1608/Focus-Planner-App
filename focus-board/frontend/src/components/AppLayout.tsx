@@ -4,6 +4,7 @@ import { signOut, useSessionContext } from 'supertokens-auth-react/recipe/sessio
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import './AppLayout.css';
+import OfflineStatus from './OfflineStatus';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -24,8 +25,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     const onResize = () => {
       const desktop = getIsDesktop();
       setIsDesktop(desktop);
-      // When switching to desktop, ensure sidebar is open by default
-      // When switching to mobile, close it by default
       setIsSidebarOpen(desktop);
     };
     window.addEventListener('resize', onResize);
@@ -37,7 +36,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       await signOut();
       navigate('/');
     } catch (error) {
-      // If not logged in, just navigate to home
       navigate('/');
     }
   };
@@ -64,7 +62,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
   return (
     <div className={rootClasses}>
-      {/* Fixed Sidebar */}
       <aside className={asideClasses}>
         <div className="sidebar-header">
           <div className="brand">
@@ -72,7 +69,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             <h1 className="brand-title">FocusBoard</h1>
           </div>
         </div>
-
         <nav className="sidebar-nav">
           <ul className="nav-list">
             {navItems.map((item) => (
@@ -89,7 +85,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             ))}
           </ul>
         </nav>
-
         <div className="sidebar-footer">
           <button className="theme-toggle" onClick={toggleTheme}>
             {isDarkMode ? '☀️' : '🌙'}
@@ -108,19 +103,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         </div>
       </aside>
 
-      {/* Mobile overlay */}
       {!isDesktop && isSidebarOpen && <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />}
 
-      {/* Main Content */}
       <main className="main-content">
         <header className="top-header">
           <div className="header-content">
             <div className="header-left">
-              <button
-                className="hamburger-btn"
-                aria-label="Toggle menu"
-                onClick={() => setIsSidebarOpen((v) => !v)}
-              >
+              <button className="hamburger-btn" aria-label="Toggle menu" onClick={() => setIsSidebarOpen((v) => !v)}>
                 {isSidebarOpen ? '✕' : '☰'}
               </button>
               {location.pathname !== '/' && (
@@ -133,7 +122,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             <h2 className="page-title">
               {location.pathname === '/' ? 'FocusBoard' : navItems.find(item => item.path === location.pathname)?.label || 'Dashboard'}
             </h2>
-            <div className="user-info">
+            <div className="user-info" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <OfflineStatus />
               <span className="user-avatar">👤</span>
               <span className="user-name">
                 {session.doesSessionExist ? 'User' : 'Preview Mode'}
