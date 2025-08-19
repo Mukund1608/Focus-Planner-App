@@ -41,8 +41,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   };
 
   const navItems = [
-    { path: '/', label: 'Home', icon: '🏠' },
-    { path: '/dashboard', label: 'Daily', icon: '📅' },
+    { path: '/dashboard', label: 'Dashboard', icon: '🏠' },
+    { path: '/daily', label: 'Daily Tasks', icon: '📅' },
     { path: '/weekly', label: 'Weekly', icon: '📊' },
     { path: '/priority', label: 'Priority Board', icon: '🎯' },
     { path: '/habits', label: 'Habits', icon: '🔄' },
@@ -112,12 +112,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
               <button className="hamburger-btn" aria-label="Toggle menu" onClick={() => setIsSidebarOpen((v) => !v)}>
                 {isSidebarOpen ? '✕' : '☰'}
               </button>
-              {location.pathname !== '/' && (
-                <Link to="/" className="home-link">
-                  <span className="home-icon">🏠</span>
-                  <span className="home-text">Back to Home</span>
-                </Link>
-              )}
             </div>
             <h2 className="page-title">
               {location.pathname === '/' ? 'FocusBoard' : navItems.find(item => item.path === location.pathname)?.label || 'Dashboard'}

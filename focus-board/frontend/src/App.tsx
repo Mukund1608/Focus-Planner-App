@@ -3,10 +3,10 @@ import { getSuperTokensRoutesForReactRouterDom } from "supertokens-auth-react/ui
 import { SessionAuth } from "supertokens-auth-react/recipe/session";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import * as ReactRouter from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Dashboard from "./Dashboard";
 import { PreBuiltUIList, ComponentWrapper, SuperTokensConfig } from "./config";
-import Home from "./Home";
+import LoadingPage from "./components/LoadingPage";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import AppLayout from "./components/AppLayout";
 import FocusMode from "./components/FocusMode";
@@ -19,11 +19,27 @@ import DailyView from "./components/DailyView";
 import { notificationService } from "./services/notificationService";
 
 function App() {
+    const [isLoading, setIsLoading] = useState(true);
+
     // Initialize notification service when app starts
     useEffect(() => {
         // Initialize notification service
         console.log('Initializing notification service...');
     }, []);
+
+    const handleLoadingComplete = () => {
+        setIsLoading(false);
+    };
+
+    if (isLoading) {
+        return (
+            <SuperTokensWrapper config={SuperTokensConfig}>
+                <ThemeProvider>
+                    <LoadingPage onLoadingComplete={handleLoadingComplete} />
+                </ThemeProvider>
+            </SuperTokensWrapper>
+        );
+    }
 
     return (
         <SuperTokensWrapper config={SuperTokensConfig}>
@@ -33,7 +49,14 @@ function App() {
                         <div className="fill" id="home-container">
                             <ComponentWrapper>
                                 <Routes>
-                                    <Route path="/" element={<Home />} />
+                                                                         {/* Redirect root to dashboard with AppLayout */}
+                                     <Route path="/" element={
+                                         <SessionAuth>
+                                             <AppLayout>
+                                                 <Dashboard />
+                                             </AppLayout>
+                                         </SessionAuth>
+                                     } />
                                     {/* SuperTokens authentication routes */}
                                     {getSuperTokensRoutesForReactRouterDom(ReactRouter, PreBuiltUIList)}
 
@@ -44,6 +67,16 @@ function App() {
                                             <SessionAuth>
                                                 <AppLayout>
                                                     <Dashboard />
+                                                </AppLayout>
+                                            </SessionAuth>
+                                        }
+                                    />
+                                    <Route
+                                        path="/daily"
+                                        element={
+                                            <SessionAuth>
+                                                <AppLayout>
+                                                    <DailyView />
                                                 </AppLayout>
                                             </SessionAuth>
                                         }

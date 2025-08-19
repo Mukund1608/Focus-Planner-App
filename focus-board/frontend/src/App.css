@@ -6,22 +6,22 @@
     --success-bg: #e7ffed;
     --border-color: #e0e0e0;
     
-    /* Theme variables */
-    --bg-primary: #ffffff;
-    --bg-secondary: #f8f9fa;
-    --text-primary: #333333;
-    --text-secondary: #666666;
-    --shadow-light: rgba(0, 0, 0, 0.1);
-    --shadow-medium: rgba(0, 0, 0, 0.15);
+    /* Theme variables - Light Blue Theme */
+    --bg-primary: #e3f2fd;
+    --bg-secondary: #f5f9ff;
+    --text-primary: #1a237e;
+    --text-secondary: #3949ab;
+    --shadow-light: rgba(26, 35, 126, 0.1);
+    --shadow-medium: rgba(26, 35, 126, 0.15);
 }
 
-/* Dark theme variables */
+/* Dark theme variables - Dark Blue Theme */
 [data-theme="dark"] {
-    --bg-primary: #1a1a1a;
-    --bg-secondary: #2d2d2d;
+    --bg-primary: #0d1b2a;
+    --bg-secondary: #1b263b;
     --text-primary: #ffffff;
-    --text-secondary: #cccccc;
-    --border-color: #404040;
+    --text-secondary: #e0e0e0;
+    --border-color: #2c3e50;
     --shadow-light: rgba(0, 0, 0, 0.3);
     --shadow-medium: rgba(0, 0, 0, 0.4);
 }
@@ -58,16 +58,18 @@ body {
 .fill {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     flex: 1;
-    padding-top: 10px;
+    padding-top: 0;
+    width: 100%;
 }
 
 /* Home page */
 #home-container {
-    align-items: center;
+    align-items: stretch;
     min-height: calc(100vh - 58px);
     background: url("./assets/images/background.png") center/cover;
+    width: 100%;
 }
 
 .logos {
@@ -91,7 +93,7 @@ body {
 /* Main content */
 .main-container {
     box-shadow: 0 0 60px rgba(0, 0, 0, 0.16);
-    width: min(635px, calc(100% - 24px));
+    width: 100%;
     border-radius: 16px;
     background-color: white;
 }

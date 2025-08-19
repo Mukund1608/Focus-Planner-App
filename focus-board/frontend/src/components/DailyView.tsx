@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { format, addDays, subDays, isToday, isSameDay } from 'date-fns';
-import { Task, TaskStatus, PriorityLevel } from '../types/task';
+import { Task, TaskStatus, PriorityLevel, TaskCreate } from '../types/task';
 import { taskAPI } from '../services/api';
 import TaskCard from './TaskCard';
 import './DailyView.css';
@@ -10,6 +10,8 @@ const DailyView: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [isAddingTask, setIsAddingTask] = useState(false);
 
   // Load tasks for the selected date
   useEffect(() => {
@@ -74,6 +76,42 @@ const DailyView: React.FC = () => {
       await loadTasksForDate();
     } catch (err) {
       console.error('Error updating task status:', err);
+    }
+  };
+
+  const handleAddTask = async () => {
+    if (!newTaskTitle.trim()) return;
+    
+    try {
+      setIsAddingTask(true);
+      const taskData: TaskCreate = {
+        title: newTaskTitle.trim(),
+        description: '',
+        priority: PriorityLevel.MEDIUM,
+        status: TaskStatus.PENDING,
+        due_date: format(selectedDate, 'yyyy-MM-dd'),
+        reminder_enabled: false,
+        reminder_type: 'NONE' as any,
+        reminder_advance: '15',
+        is_recurring: false,
+        recurring_pattern: 'NONE' as any,
+        priority_board_id: 1 // Default priority board
+      };
+      
+      const newTask = await taskAPI.create(taskData);
+      setTasks(prev => [newTask, ...prev]);
+      setNewTaskTitle('');
+    } catch (err) {
+      setError('Failed to create task');
+      console.error('Error creating task:', err);
+    } finally {
+      setIsAddingTask(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleAddTask();
     }
   };
 
@@ -152,6 +190,28 @@ const DailyView: React.FC = () => {
             {completedTasks.length} of {totalTasks} tasks completed
             {totalTasks > 0 && ` (${Math.round(progressPercentage)}%)`}
           </div>
+        </div>
+      </div>
+
+      {/* Quick Add Task */}
+      <div className="quick-add-task">
+        <div className="add-task-input-container">
+          <input
+            type="text"
+            className="add-task-input"
+            placeholder="Add a new task..."
+            value={newTaskTitle}
+            onChange={(e) => setNewTaskTitle(e.target.value)}
+            onKeyPress={handleKeyPress}
+            disabled={isAddingTask}
+          />
+          <button
+            className="add-task-button"
+            onClick={handleAddTask}
+            disabled={isAddingTask || !newTaskTitle.trim()}
+          >
+            {isAddingTask ? 'Adding...' : 'Add'}
+          </button>
         </div>
       </div>
 
