@@ -1,0 +1,103 @@
+.error-boundary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  background-color: #f8fafc;
+}
+
+.error-content {
+  max-width: 500px;
+  text-align: center;
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.error-content h2 {
+  color: #dc2626;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.error-content p {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.error-details {
+  margin: 1.5rem 0;
+  text-align: left;
+}
+
+.error-details summary {
+  cursor: pointer;
+  color: #374151;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.error-details pre {
+  background-color: #f3f4f6;
+  padding: 1rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  overflow-x: auto;
+  color: #dc2626;
+  margin: 0.5rem 0;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .error-boundary {
+    background-color: #1f2937;
+  }
+  
+  .error-content {
+    background-color: #374151;
+    color: #f9fafb;
+  }
+  
+  .error-content h2 {
+    color: #f87171;
+  }
+  
+  .error-content p {
+    color: #d1d5db;
+  }
+  
+  .error-details summary {
+    color: #e5e7eb;
+  }
+  
+  .error-details pre {
+    background-color: #4b5563;
+    color: #f87171;
+  }
+}

@@ -16,7 +16,9 @@ import PriorityBoards from "./components/PriorityBoards";
 import HabitTracker from "./components/HabitTracker";
 import WeeklyView from "./components/WeeklyView";
 import DailyView from "./components/DailyView";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { notificationService } from "./services/notificationService";
+import "./styles/animations.css";
 
 function App() {
     const [isLoading, setIsLoading] = useState(true);
@@ -42,13 +44,14 @@ function App() {
     }
 
     return (
-        <SuperTokensWrapper config={SuperTokensConfig}>
-            <ThemeProvider>
-                <BrowserRouter>
-                    <main className="App app-container">
-                        <div className="fill" id="home-container">
-                            <ComponentWrapper>
-                                <Routes>
+        <ErrorBoundary>
+            <SuperTokensWrapper config={SuperTokensConfig}>
+                <ThemeProvider>
+                    <BrowserRouter>
+                        <main className="App app-container">
+                            <div className="fill" id="home-container">
+                                <ComponentWrapper>
+                                    <Routes>
                                                                          {/* Redirect root to dashboard with AppLayout */}
                                      <Route path="/" element={
                                          <SessionAuth>
@@ -150,6 +153,7 @@ function App() {
                 </BrowserRouter>
             </ThemeProvider>
         </SuperTokensWrapper>
+        </ErrorBoundary>
     );
 }
 
