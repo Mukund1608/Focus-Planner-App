@@ -54,3 +54,8 @@ const indexedDBMock = {
 Object.defineProperty(window, 'indexedDB', {
   value: indexedDBMock,
 })
+
+// Mock global fetch
+if (typeof global !== 'undefined') {
+  (global as any).fetch = vi.fn()
+}

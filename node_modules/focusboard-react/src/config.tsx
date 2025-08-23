@@ -32,7 +32,7 @@ export const SuperTokensConfig = {
     recipeList: [
         EmailPassword.init({
             signInAndUpFeature: {
-                defaultToSignUp: true,
+                // defaultToSignUp is not a valid property in this version
             },
         }),
         Session.init()

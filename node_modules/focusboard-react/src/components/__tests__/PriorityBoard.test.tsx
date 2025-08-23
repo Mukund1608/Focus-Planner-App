@@ -1,81 +1,91 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, fireEvent } from '@testing-library/react'
+import { vi } from 'vitest'
 import PriorityBoard from '../PriorityBoard'
-import { PriorityLevel, TaskStatus, ReminderType, RecurringPattern } from '../../types/task'
+import { PriorityBoard as PriorityBoardType, Task, TaskStatus, PriorityLevel } from '../../types/task'
 
-// Mock the drag and drop context
-vi.mock('react-beautiful-dnd', () => ({
-  DragDropContext: ({ children, onDragEnd }: any) => (
-    <div data-testid="drag-drop-context" onClick={() => onDragEnd({})}>
-      {children}
+// Mock TaskForm and TaskCard components
+vi.mock('../TaskForm', () => ({
+  default: ({ onSubmit, onCancel, priorityBoardId }: any) => (
+    <div data-testid="task-form">
+      <button onClick={() => onSubmit({ title: 'Test Task', priority: PriorityLevel.MEDIUM })}>
+        Submit
+      </button>
+      <button onClick={onCancel}>Cancel</button>
     </div>
-  ),
-  Droppable: ({ children }: any) => children({
-    droppableProps: {},
-    innerRef: vi.fn(),
-    placeholder: null,
-  }, {}),
-  Draggable: ({ children }: any) => children({
-    draggableProps: {},
-    dragHandleProps: {},
-    innerRef: vi.fn(),
-  }, {}),
+  )
 }))
 
-const mockTasks = [
-  {
-    id: 1,
-    title: 'Test Task 1',
-    description: 'Test Description 1',
-    priority: PriorityLevel.HIGH,
-    status: TaskStatus.PENDING,
-    completed: false,
-    due_date: '2024-01-01',
-    created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z',
-    reminder_enabled: false,
-    reminder_type: ReminderType.NONE,
-    is_recurring: false,
-    recurring_pattern: RecurringPattern.NONE,
-    position: 1,
-    priority_board_id: 1
-  },
-  {
-    id: 2,
-    title: 'Test Task 2',
-    description: 'Test Description 2',
-    priority: PriorityLevel.MEDIUM,
-    status: TaskStatus.PENDING,
-    completed: false,
-    due_date: '2024-01-02',
-    created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z',
-    reminder_enabled: false,
-    reminder_type: ReminderType.NONE,
-    is_recurring: false,
-    recurring_pattern: RecurringPattern.NONE,
-    position: 2,
-    priority_board_id: 1
-  },
-]
+vi.mock('../TaskCard', () => ({
+  default: ({ task, onEdit, onDelete, onStatusChange }: any) => (
+    <div data-testid={`task-card-${task.id}`}>
+      <span>{task.title}</span>
+      <button onClick={() => onEdit(task)}>Edit</button>
+      <button onClick={() => onDelete(task.id)}>Delete</button>
+      <button onClick={() => onStatusChange(task.id, TaskStatus.IN_PROGRESS)}>Status</button>
+    </div>
+  )
+}))
 
-const mockPriorityBoard = {
+const mockPriorityBoard: PriorityBoardType = {
   id: 1,
   name: 'Test Board',
-  description: 'Test Description',
-  tasks: mockTasks,
+  user_id: 'user123',
   created_at: '2024-01-01T00:00:00Z',
-  updated_at: '2024-01-01T00:00:00Z'
+  updated_at: '2024-01-01T00:00:00Z',
+  tasks: [
+    {
+      id: 1,
+      title: 'Test Task 1',
+      description: 'Test Description',
+      priority: PriorityLevel.HIGH,
+      status: TaskStatus.PENDING,
+      due_date: '2024-01-01',
+      user_id: 'user123',
+      priority_board_id: 1,
+      position: 1,
+      reminder_enabled: false,
+      reminder_type: 'none' as any,
+      reminder_sent: false,
+      is_recurring: false,
+      recurring_pattern: 'none' as any,
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-01-01T00:00:00Z'
+    },
+    {
+      id: 2,
+      title: 'Test Task 2',
+      description: 'Test Description 2',
+      priority: PriorityLevel.MEDIUM,
+      status: TaskStatus.IN_PROGRESS,
+      due_date: '2024-01-02',
+      user_id: 'user123',
+      priority_board_id: 1,
+      position: 2,
+      reminder_enabled: false,
+      reminder_type: 'none' as any,
+      reminder_sent: false,
+      is_recurring: false,
+      recurring_pattern: 'none' as any,
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-01-01T00:00:00Z'
+    }
+  ]
+}
+
+const emptyBoard: PriorityBoardType = {
+  id: 1,
+  name: 'Empty Board',
+  user_id: 'user123',
+  created_at: '2024-01-01T00:00:00Z',
+  updated_at: '2024-01-01T00:00:00Z',
+  tasks: []
 }
 
 const mockProps = {
   priorityBoard: mockPriorityBoard,
+  onTaskCreate: vi.fn(),
   onTaskUpdate: vi.fn(),
-  onTaskDelete: vi.fn(),
-  onTaskReorder: vi.fn(),
-  onCreateTask: vi.fn(),
-  onPriorityBoardUpdate: vi.fn(),
-  onPriorityBoardDelete: vi.fn(),
+  onTaskDelete: vi.fn()
 }
 
 describe('PriorityBoard', () => {
@@ -83,41 +93,64 @@ describe('PriorityBoard', () => {
     vi.clearAllMocks()
   })
 
-  it('renders priority board with name', () => {
+  it('renders priority board with tasks', () => {
     render(<PriorityBoard {...mockProps} />)
-    
+
     expect(screen.getByText('Test Board')).toBeInTheDocument()
+    expect(screen.getByText('Priority board for organizing quests')).toBeInTheDocument()
+    expect(screen.getByTestId('task-card-1')).toBeInTheDocument()
+    expect(screen.getByTestId('task-card-2')).toBeInTheDocument()
   })
 
-  it('displays tasks in the board', () => {
-    render(<PriorityBoard {...mockProps} />)
-    
-    expect(screen.getByText('Test Task 1')).toBeInTheDocument()
-    expect(screen.getByText('Test Task 2')).toBeInTheDocument()
-  })
-
-  it('shows task count', () => {
-    render(<PriorityBoard {...mockProps} />)
-    
-    expect(screen.getByText('(2)')).toBeInTheDocument()
-  })
-
-  it('calls onCreateTask when add task button is clicked', () => {
-    render(<PriorityBoard {...mockProps} />)
-    
-    const addButton = screen.getByText('+ Add Task')
-    fireEvent.click(addButton)
-    
-    // The button click should show the task form, not directly call onCreateTask
-    // onCreateTask is called when the form is submitted
-    expect(addButton).toBeInTheDocument()
-  })
-
-  it('renders empty task list when no tasks', () => {
-    const emptyBoard = { ...mockPriorityBoard, tasks: [] }
+  it('renders empty state when no tasks', () => {
     render(<PriorityBoard {...mockProps} priorityBoard={emptyBoard} />)
-    
-    // Should show empty task list but no specific "no tasks" message
-    expect(screen.getByText('(0)')).toBeInTheDocument()
+
+    expect(screen.getByText('No quests yet')).toBeInTheDocument()
+    expect(screen.getByText('Start your journey by creating your first quest!')).toBeInTheDocument()
+  })
+
+  it('shows task form when add task button is clicked', () => {
+    render(<PriorityBoard {...mockProps} />)
+
+    fireEvent.click(screen.getByText('+ Add Quest'))
+    expect(screen.getByTestId('task-form')).toBeInTheDocument()
+  })
+
+  it('calls onTaskCreate when task form is submitted', () => {
+    render(<PriorityBoard {...mockProps} />)
+
+    fireEvent.click(screen.getByText('+ Add Quest'))
+    fireEvent.click(screen.getByText('Submit'))
+
+    expect(mockProps.onTaskCreate).toHaveBeenCalledWith({
+      title: 'Test Task',
+      priority: PriorityLevel.MEDIUM,
+      priority_board_id: 1,
+      status: TaskStatus.PENDING
+    })
+  })
+
+  it('calls onTaskDelete when delete button is clicked', () => {
+    render(<PriorityBoard {...mockProps} />)
+
+    fireEvent.click(screen.getByText('Delete'))
+    expect(mockProps.onTaskDelete).toHaveBeenCalledWith(1)
+  })
+
+  it('calls onTaskUpdate when edit button is clicked', () => {
+    render(<PriorityBoard {...mockProps} />)
+
+    fireEvent.click(screen.getByText('Edit'))
+    expect(mockProps.onTaskUpdate).toHaveBeenCalledWith(mockPriorityBoard.tasks[0])
+  })
+
+  it('calls onTaskUpdate when status is changed', () => {
+    render(<PriorityBoard {...mockProps} />)
+
+    fireEvent.click(screen.getByText('Status'))
+    expect(mockProps.onTaskUpdate).toHaveBeenCalledWith({
+      ...mockPriorityBoard.tasks[0],
+      status: TaskStatus.IN_PROGRESS
+    })
   })
 })

@@ -32,10 +32,7 @@ const Settings: React.FC = () => {
     setReminderTime(savedReminderTime);
   }, [setTheme]);
 
-  const handleThemeChange = (newTheme: 'light' | 'dark') => {
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-  };
+  // Theme change function removed - using sidebar theme toggle instead
 
   const handleNotificationToggle = (enabled: boolean) => {
     setNotificationsEnabled(enabled);
@@ -103,7 +100,7 @@ const Settings: React.FC = () => {
       try {
         const data = JSON.parse(e.target?.result as string);
         
-        if (data.theme) handleThemeChange(data.theme);
+        if (data.theme) setTheme(data.theme);
         if (typeof data.notificationsEnabled === 'boolean') {
           handleNotificationToggle(data.notificationsEnabled);
         }
@@ -208,32 +205,7 @@ const Settings: React.FC = () => {
       </div>
 
       <div className="settings-container">
-        {/* Appearance Settings */}
-        <div className="settings-section">
-          <h2 className="text-h2 text-primary">Appearance</h2>
-          <div className="setting-item">
-            <div className="setting-info">
-              <h3 className="text-h3 text-primary">Theme</h3>
-              <p className="text-body text-secondary">Choose your preferred color scheme</p>
-            </div>
-            <div className="setting-control">
-              <div className="theme-toggle">
-                <button
-                  className={`theme-btn ${theme === 'light' ? 'active' : ''}`}
-                  onClick={() => handleThemeChange('light')}
-                >
-                  ☀️ Light
-                </button>
-                <button
-                  className={`theme-btn ${theme === 'dark' ? 'active' : ''}`}
-                  onClick={() => handleThemeChange('dark')}
-                >
-                  🌙 Dark
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Appearance Settings - Theme toggle removed */}
 
         {/* Notification Settings */}
         <div className="settings-section">

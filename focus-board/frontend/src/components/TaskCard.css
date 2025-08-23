@@ -88,7 +88,12 @@
 .quest-actions {
   display: flex;
   gap: var(--spacing-xs);
+  align-items: center;
+  position: relative;
+  z-index: 5;
 }
+
+
 
 .quest-action-btn {
   background: var(--color-surface);

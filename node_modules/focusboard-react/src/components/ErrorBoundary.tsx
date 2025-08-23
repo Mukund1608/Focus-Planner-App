@@ -1,15 +1,13 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react'
+import { Component, ErrorInfo, ReactNode } from 'react'
 import './ErrorBoundary.css'
 
 interface Props {
   children: ReactNode
-  fallback?: ReactNode
 }
 
 interface State {
   hasError: boolean
   error?: Error
-  errorInfo?: ErrorInfo
 }
 
 class ErrorBoundary extends Component<Props, State> {
@@ -23,44 +21,46 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo)
-    this.setState({ error, errorInfo })
+    console.error('Error caught by boundary:', error, errorInfo)
     
-    // Log error to external service in production
-    if (process.env.NODE_ENV === 'production') {
-      // Add error logging service here
-      console.error('Error logged to external service')
+    // Only log to console in development
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+      console.error('Error details:', errorInfo)
     }
   }
 
   render() {
     if (this.state.hasError) {
-      if (this.props.fallback) {
-        return this.props.fallback
-      }
-
       return (
         <div className="error-boundary">
           <div className="error-content">
-            <h2>Something went wrong</h2>
-            <p>We're sorry, but something unexpected happened. Please try refreshing the page.</p>
-            
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            <div className="error-icon">🚀</div>
+            <h1 className="text-display text-primary">Oops! Something went wrong</h1>
+            <p className="text-body-lg text-secondary">
+              Don't worry, even rockets have technical difficulties sometimes!
+            </p>
+            <div className="error-actions">
+              <button
+                className="btn-primary"
+                onClick={() => window.location.reload()}
+              >
+                Reload Mission Control
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={() => this.setState({ hasError: false })}
+              >
+                Try Again
+              </button>
+            </div>
+            {typeof window !== 'undefined' && window.location.hostname === 'localhost' && this.state.error && (
               <details className="error-details">
                 <summary>Error Details (Development)</summary>
-                <pre>{this.state.error.toString()}</pre>
-                {this.state.errorInfo && (
-                  <pre>{this.state.errorInfo.componentStack}</pre>
-                )}
+                <pre className="error-stack">
+                  {this.state.error.stack}
+                </pre>
               </details>
             )}
-            
-            <button 
-              className="btn btn-primary"
-              onClick={() => window.location.reload()}
-            >
-              Refresh Page
-            </button>
           </div>
         </div>
       )

@@ -29,6 +29,52 @@ const PriorityBoards: React.FC<PriorityBoardsProps> = ({
   });
   const { theme } = useTheme();
 
+  // Priority helper functions
+  const getPriorityColor = (priority: PriorityLevel): string => {
+    switch (priority) {
+      case PriorityLevel.URGENT:
+        return '#EF4444'; // danger
+      case PriorityLevel.HIGH:
+        return '#6D7BFF'; // blue-accent
+      case PriorityLevel.MEDIUM:
+        return '#8B5CF6'; // purple
+      case PriorityLevel.LOW:
+        return '#22C55E'; // success
+      default:
+        return '#6B7280'; // gray
+    }
+  };
+
+  const getPriorityLabel = (priority: PriorityLevel): string => {
+    switch (priority) {
+      case PriorityLevel.URGENT:
+        return 'Boss Task';
+      case PriorityLevel.HIGH:
+        return 'Milestone';
+      case PriorityLevel.MEDIUM:
+        return 'Weekly Streak';
+      case PriorityLevel.LOW:
+        return 'Daily';
+      default:
+        return 'Quest';
+    }
+  };
+
+  const getPriorityIcon = (priority: PriorityLevel): string => {
+    switch (priority) {
+      case PriorityLevel.URGENT:
+        return '👑';
+      case PriorityLevel.HIGH:
+        return '🏆';
+      case PriorityLevel.MEDIUM:
+        return '⚡';
+      case PriorityLevel.LOW:
+        return '📋';
+      default:
+        return '🎯';
+    }
+  };
+
   // Load demo data on mount if no props provided
   useEffect(() => {
     if (!propBoards) {
@@ -210,9 +256,6 @@ const PriorityBoards: React.FC<PriorityBoardsProps> = ({
       <div className={`priority-boards ${theme}`}>
         <div className="boards-header">
           <h1 className="text-display text-primary">Priority Boards</h1>
-          <p className="text-body-lg text-secondary">
-            Organize your quests into focused mission boards!
-          </p>
         </div>
 
         <div className="empty-state">
@@ -291,61 +334,88 @@ const PriorityBoards: React.FC<PriorityBoardsProps> = ({
 
   return (
     <div className={`priority-boards ${theme}`}>
-      <div className="boards-header">
-        <h1 className="text-display text-primary">Priority Boards</h1>
-        <p className="text-body-lg text-secondary">
-          Organize your quests into focused mission boards!
-        </p>
-        <button
-          className="btn-primary"
-          onClick={() => setShowCreateForm(true)}
-        >
-          + Create Board
-        </button>
-      </div>
+      {!selectedBoard ? (
+        <>
+          <div className="boards-header">
+            <h1 className="text-display text-primary">Priority Boards</h1>
+            <button
+              className="btn-primary"
+              onClick={() => setShowCreateForm(true)}
+            >
+              + Create Board
+            </button>
+          </div>
 
-      <div className="boards-container">
-        {/* Board Selection Sidebar */}
-        <div className="boards-sidebar">
-          <h3 className="text-h3 text-primary">Your Boards</h3>
-          <div className="boards-list">
+          <div className="boards-grid">
             {boards.map(board => (
               <div
                 key={board.id}
-                className={`board-item ${selectedBoard?.id === board.id ? 'active' : ''}`}
+                className="board-card"
                 onClick={() => handleBoardSelect(board)}
               >
-                <div className="board-item-info">
-                  <h4 className="text-h4 text-primary">{board.name}</h4>
-                  <span className="task-count">{board.tasks.length} quests</span>
+                <div className="board-card-header">
+                  <h3 className="text-h3 text-primary">{board.name}</h3>
+                  <span className="board-task-count">{board.tasks.length} quests</span>
+                </div>
+                
+                <div className="board-card-content">
+                  {board.tasks.length > 0 ? (
+                    <div className="board-tasks-preview">
+                      {board.tasks.slice(0, 3).map(task => (
+                        <div key={task.id} className="task-preview-item">
+                          <div 
+                            className="task-preview-priority-stripe"
+                            style={{ backgroundColor: getPriorityColor(task.priority) }}
+                          />
+                          <span className="task-title">{task.title}</span>
+                          <span className="task-preview-priority-badge">
+                            {getPriorityIcon(task.priority)} {getPriorityLabel(task.priority)}
+                          </span>
+                        </div>
+                      ))}
+                      {board.tasks.length > 3 && (
+                        <div className="more-tasks">
+                          +{board.tasks.length - 3} more
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="board-empty-state">
+                      <span className="empty-text">No quests yet</span>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="board-card-footer">
+                  <span className="board-created">
+                    Created: {new Date(board.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </span>
                 </div>
               </div>
             ))}
           </div>
+        </>
+      ) : (
+        <div className="board-detail-view">
+          <div className="board-detail-header">
+            <button
+              className="btn-back"
+              onClick={() => setSelectedBoard(null)}
+              aria-label="Back to boards"
+            >
+              ← Back to Boards
+            </button>
+            <h1 className="text-display text-primary">{selectedBoard.name}</h1>
+          </div>
+          
+          <PriorityBoardComponent
+            priorityBoard={selectedBoard}
+            onTaskCreate={handleTaskCreate}
+            onTaskUpdate={handleTaskUpdate}
+            onTaskDelete={handleTaskDelete}
+          />
         </div>
-
-        {/* Selected Board Content */}
-        <div className="board-content">
-          {selectedBoard ? (
-            <PriorityBoardComponent
-              priorityBoard={selectedBoard}
-              onTaskCreate={handleTaskCreate}
-              onTaskUpdate={handleTaskUpdate}
-              onTaskDelete={handleTaskDelete}
-            />
-          ) : (
-            <div className="no-board-selected">
-              <div className="empty-illustration">
-                <div className="empty-icon">📋</div>
-              </div>
-              <h4 className="text-h3 text-primary">Select a Board</h4>
-              <p className="text-body text-secondary">
-                Choose a board from the sidebar to view and manage its quests.
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
+      )}
 
       {/* Create Board Form Modal */}
       {showCreateForm && (

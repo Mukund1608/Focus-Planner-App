@@ -67,7 +67,6 @@ async function applyToServer(item: SyncQueueItem, localTask: TaskRecord | undefi
       }),
     });
     if (!res.ok) throw new Error('UPDATE failed');
-    const _server: ServerTask = await res.json();
     const updated: TaskRecord = { ...localTask, isDirty: false };
     await putTask(updated);
     return updated;

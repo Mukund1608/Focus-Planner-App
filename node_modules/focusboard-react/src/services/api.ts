@@ -1,14 +1,13 @@
-import { 
-  Task, 
-  PriorityBoard, 
-  TaskCreate, 
-  TaskUpdate, 
-  PriorityBoardCreate, 
+import {
+  Task,
+  PriorityBoard,
+  TaskCreate,
+  TaskUpdate,
+  PriorityBoardCreate,
   PriorityBoardUpdate,
   TaskReorderRequest,
   TaskBulkUpdateRequest,
   CreateRecurringTaskRequest,
-  RecurringConfig,
   ReminderConfig,
   Habit,
   HabitCreate,
@@ -22,7 +21,7 @@ const API_BASE_URL = 'http://localhost:5000/api';
 
 // Helper function to make authenticated API calls
 async function apiCall<T>(
-  endpoint: string, 
+  endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {

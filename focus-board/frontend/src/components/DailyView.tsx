@@ -24,6 +24,7 @@ const DailyView: React.FC<DailyViewProps> = ({
   const tasks = propTasks || internalTasks;
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showTaskForm, setShowTaskForm] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const { theme } = useTheme();
 
   // Load demo data on mount if no props provided
@@ -146,12 +147,33 @@ const DailyView: React.FC<DailyViewProps> = ({
     setShowTaskForm(false);
   };
 
-  const handleEditTask = (updatedTask: Task) => {
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+  };
+
+  const handleUpdateTask = (taskData: Partial<Task>) => {
+    if (!editingTask) return;
+    
+    const updatedTask: Task = {
+      ...editingTask,
+      title: taskData.title || editingTask.title,
+      description: taskData.description || editingTask.description,
+      status: taskData.status || editingTask.status,
+      priority: taskData.priority || editingTask.priority,
+      due_date: taskData.due_date || editingTask.due_date,
+      updated_at: new Date().toISOString(),
+      reminder_enabled: taskData.reminder_enabled !== undefined ? taskData.reminder_enabled : editingTask.reminder_enabled,
+      reminder_type: taskData.reminder_type || editingTask.reminder_type,
+      is_recurring: taskData.is_recurring !== undefined ? taskData.is_recurring : editingTask.is_recurring,
+      recurring_pattern: taskData.recurring_pattern || editingTask.recurring_pattern
+    };
+
     if (onTaskUpdate) {
       onTaskUpdate(updatedTask);
     } else {
       setInternalTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
     }
+    setEditingTask(null);
   };
 
   const handleDeleteTask = (taskId: number) => {
@@ -169,9 +191,6 @@ const DailyView: React.FC<DailyViewProps> = ({
     <div className={`daily-view ${theme}`}>
       <div className="daily-header">
         <h1 className="text-display text-primary">Daily Quests</h1>
-        <p className="text-body-lg text-secondary">
-          Complete your daily missions and level up your productivity!
-        </p>
       </div>
 
       {/* Date Navigation */}
@@ -195,39 +214,11 @@ const DailyView: React.FC<DailyViewProps> = ({
         </button>
       </div>
 
-      {/* Today's Overview */}
-      {isToday(selectedDate) && (
-        <div className="today-overview">
-          <div className="overview-card">
-            <h3 className="text-h3 text-primary">Today's Progress</h3>
-            <div className="progress-stats">
-              <div className="stat">
-                <span className="stat-number">{todayTasks.length}</span>
-                <span className="stat-label">Total Quests</span>
-              </div>
-              <div className="stat">
-                <span className="stat-number">
-                  {todayTasks.filter(t => t.status === TaskStatus.COMPLETED).length}
-                </span>
-                <span className="stat-label">Completed</span>
-              </div>
-              <div className="stat">
-                <span className="stat-number">
-                  {todayTasks.filter(t => t.status === TaskStatus.IN_PROGRESS).length}
-                </span>
-                <span className="stat-label">In Progress</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Task List */}
       <div className="daily-tasks">
         <div className="tasks-header">
-          <h3 className="text-h3 text-primary">
-            Quests for {format(selectedDate, 'MMMM d')}
-          </h3>
           <button
             className="btn-primary"
             onClick={() => setShowTaskForm(true)}
@@ -287,6 +278,31 @@ const DailyView: React.FC<DailyViewProps> = ({
             <TaskForm
               onSubmit={handleCreateTask}
               onCancel={() => setShowTaskForm(false)}
+              priorityBoardId={1}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Edit Task Form Modal */}
+      {editingTask && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3 className="text-h3 text-primary">Edit Quest</h3>
+              <button
+                className="btn-tertiary"
+                onClick={() => setEditingTask(null)}
+                aria-label="Close modal"
+              >
+                ×
+              </button>
+            </div>
+            <TaskForm
+              task={editingTask}
+              isEditing={true}
+              onSubmit={handleUpdateTask}
+              onCancel={() => setEditingTask(null)}
               priorityBoardId={1}
             />
           </div>

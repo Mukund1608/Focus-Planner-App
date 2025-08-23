@@ -142,9 +142,6 @@ const FocusMode: React.FC = () => {
     <div className={`focus-mode ${theme}`}>
       <div className="focus-header">
         <h1 className="text-display text-primary">Focus Mode</h1>
-        <p className="text-body-lg text-secondary">
-          Enter the zone and complete your quests with laser focus!
-        </p>
       </div>
 
       <div className="focus-container">
@@ -153,47 +150,25 @@ const FocusMode: React.FC = () => {
           <div className="timer-card">
             <div className="timer-header">
               <h2 className="text-h2 text-primary">{getPhaseTitle()}</h2>
-              <p className="text-body text-secondary">{getPhaseDescription()}</p>
             </div>
 
             <div className="timer-display">
               <div className="time-display">
                 <span className="time-text">{formatTime(timeLeft)}</span>
               </div>
-              
-              <div className="progress-ring">
-                <svg className="progress-svg" viewBox="0 0 120 120">
-                  <circle
-                    className="progress-background"
-                    cx="60"
-                    cy="60"
-                    r="54"
-                    strokeWidth="8"
-                  />
-                  <circle
-                    className="progress-fill"
-                    cx="60"
-                    cy="60"
-                    r="54"
-                    strokeWidth="8"
-                    strokeDasharray={`${2 * Math.PI * 54}`}
-                    strokeDashoffset={`${2 * Math.PI * 54 * (1 - getProgressPercentage() / 100)}`}
-                  />
-                </svg>
-              </div>
             </div>
 
             <div className="timer-controls">
               {!isRunning ? (
                 <button
-                  className="btn-primary btn-large"
+                  className="focus-btn focus-btn-primary"
                   onClick={startTimer}
                 >
                   Start Focus Session
                 </button>
               ) : (
                 <button
-                  className="btn-secondary btn-large"
+                  className="focus-btn focus-btn-primary"
                   onClick={pauseTimer}
                 >
                   Pause
@@ -201,7 +176,7 @@ const FocusMode: React.FC = () => {
               )}
               
               <button
-                className="btn-tertiary"
+                className="focus-btn focus-btn-secondary"
                 onClick={skipPhase}
                 disabled={!isRunning}
               >
@@ -209,7 +184,7 @@ const FocusMode: React.FC = () => {
               </button>
               
               <button
-                className="btn-tertiary"
+                className="focus-btn focus-btn-secondary"
                 onClick={resetTimer}
               >
                 Reset

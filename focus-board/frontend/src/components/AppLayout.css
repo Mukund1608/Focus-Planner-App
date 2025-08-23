@@ -112,14 +112,14 @@
   flex-direction: column;
   gap: var(--spacing-md);
   margin-top: auto;
-  background-color: var(--color-surface);
+  background-color: transparent;
   position: sticky;
   bottom: 0;
   z-index: 10;
 }
 
 .theme-toggle {
-  background: var(--color-surface);
+  background: transparent !important;
   border: 1px solid var(--color-border);
   color: var(--color-text-primary);
   padding: var(--spacing-sm);
@@ -134,14 +134,60 @@
   justify-content: center;
 }
 
+/* Override for fixed positioned theme toggle (used in landing page) */
+.theme-toggle[style*="position: fixed"] {
+  background: transparent !important;
+  width: 50px;
+  height: 50px;
+  font-size: 1.5rem;
+}
+
+/* Force transparent background for all theme toggles */
+.sidebar .theme-toggle,
+.theme-toggle {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Override any inherited background colors */
+.sidebar .theme-toggle {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 1px solid var(--color-border);
+}
+
+/* Theme toggle button styles (used by ThemeToggle component) */
+.theme-toggle-btn {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  font-size: 1.25rem;
+  transition: all 0.2s ease;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle-btn:hover {
+  background-color: rgba(109, 123, 255, 0.08) !important;
+  transform: scale(1.05);
+  border-color: var(--color-blue-accent);
+}
+
 .theme-toggle:hover {
-  background-color: rgba(109, 123, 255, 0.08);
+  background-color: rgba(109, 123, 255, 0.08) !important;
   transform: scale(1.05);
   border-color: var(--color-blue-accent);
 }
 
 .logout-btn {
-  background: var(--color-surface);
+  background: transparent;
   border: 1px solid var(--color-border);
   color: var(--color-text-primary);
   padding: var(--spacing-md);
@@ -175,7 +221,7 @@
 
 /* Login Button Styles */
 .login-btn {
-  background: var(--color-surface);
+  background: transparent;
   border: 1px solid var(--color-border);
   color: var(--color-text-primary);
   padding: var(--spacing-md);

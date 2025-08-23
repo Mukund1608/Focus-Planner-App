@@ -136,42 +136,13 @@ const HabitTracker: React.FC = () => {
     <div className={`habit-tracker ${theme}`}>
       <div className="habit-header">
         <h1 className="text-display text-primary">Habit Tracker</h1>
-        <p className="text-body-lg text-secondary">
-          Build lasting habits and track your daily progress!
-        </p>
       </div>
 
-      {/* Stats Overview */}
-      <div className="stats-overview">
-        <div className="stats-card">
-          <h3 className="text-h3 text-primary">Today's Progress</h3>
-          <div className="stats-grid">
-            <div className="stat-item">
-              <span className="stat-number">{totalHabits}</span>
-              <span className="stat-label">Total Habits</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-number">{completedHabits}</span>
-              <span className="stat-label">Completed Today</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-number">
-                {totalHabits > 0 ? Math.round((completedHabits / totalHabits) * 100) : 0}%
-              </span>
-              <span className="stat-label">Completion Rate</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-number">{totalStreak}</span>
-              <span className="stat-label">Total Streak</span>
-            </div>
-          </div>
-        </div>
-      </div>
+
 
       {/* Habits List */}
       <div className="habits-section">
         <div className="habits-header">
-          <h3 className="text-h3 text-primary">Your Habits</h3>
           <button
             className="btn-primary"
             onClick={() => setShowForm(true)}
@@ -200,15 +171,15 @@ const HabitTracker: React.FC = () => {
           <div className="habits-grid">
             {habits.map(habit => (
               <div key={habit.id} className={`habit-card ${habit.completed ? 'completed' : ''}`}>
+                <div className="habit-frequency-top">
+                  <span className="frequency-badge">
+                    {getFrequencyIcon(habit.frequency)} {getFrequencyLabel(habit.frequency)}
+                  </span>
+                </div>
                 <div className="habit-header">
                   <div className="habit-info">
                     <h4 className="text-h4 text-primary">{habit.name}</h4>
                     <p className="text-body text-secondary">{habit.description}</p>
-                  </div>
-                  <div className="habit-meta">
-                    <span className="frequency-badge">
-                      {getFrequencyIcon(habit.frequency)} {getFrequencyLabel(habit.frequency)}
-                    </span>
                   </div>
                 </div>
 

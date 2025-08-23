@@ -5,18 +5,18 @@
 }
 
 .focus-mode.light {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  color: #333;
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .focus-mode.dark {
-  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-  color: #ecf0f1;
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .focus-mode.focus-active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .focus-header {
@@ -109,26 +109,27 @@
 }
 
 .priority-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid transparent;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   padding: 0.75rem 1.5rem;
   border-radius: 12px;
   cursor: pointer;
   font-weight: 600;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  color: inherit;
+  color: var(--text-primary);
 }
 
 .priority-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--active-bg);
+  color: white;
   transform: translateY(-2px);
 }
 
 .priority-btn.active {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: #667eea;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  background: var(--active-bg);
+  color: white;
+  border-color: var(--active-bg);
+  box-shadow: 0 4px 15px rgba(109, 123, 255, 0.3);
 }
 
 /* Task List */
@@ -141,9 +142,9 @@
 .no-tasks {
   text-align: center;
   padding: 3rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  backdrop-filter: blur(10px);
+  background: var(--bg-secondary);
+  border-radius: 1rem;
+  border: 1px solid var(--border-color);
 }
 
 .tasks-grid {
@@ -153,11 +154,10 @@
 }
 
 .task-card {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
+  background: var(--bg-secondary);
+  border-radius: 1rem;
   padding: 1.5rem;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--border-color);
   transition: all 0.3s ease;
 }
 
@@ -240,19 +240,19 @@
 }
 
 .exit-focus-btn {
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  color: white;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
   padding: 0.75rem 1.5rem;
   border-radius: 12px;
   cursor: pointer;
   font-weight: 600;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
 }
 
 .exit-focus-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--active-bg);
+  color: white;
   transform: translateY(-2px);
 }
 
@@ -267,11 +267,10 @@
 }
 
 .current-task-card {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
+  background: var(--bg-secondary);
+  border-radius: 1rem;
   padding: 2rem;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid var(--border-color);
   text-align: center;
 }
 
@@ -300,11 +299,10 @@
 
 /* Timer Section */
 .timer-section {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  padding: 2rem;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg-secondary);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
 }
 
 .timer-section h3 {
@@ -316,6 +314,23 @@
 .timer-display {
   text-align: center;
   margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.time-display {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.time-text {
+  font-size: 4rem;
+  font-weight: 700;
+  font-family: 'Menlo', 'Monaco', monospace;
+  color: var(--text-primary);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .timer-time {
@@ -343,11 +358,10 @@
   gap: 1rem;
   justify-content: center;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
 }
 
-.start-timer-btn,
-.pause-timer-btn,
-.reset-timer-btn {
+.focus-btn {
   padding: 1rem 2rem;
   border: none;
   border-radius: 12px;
@@ -355,37 +369,92 @@
   font-weight: 600;
   font-size: 1rem;
   transition: all 0.3s ease;
+  min-width: 140px;
 }
 
-.start-timer-btn {
-  background: #27ae60;
+.focus-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.focus-btn-primary {
+  background: var(--active-bg);
   color: white;
+  box-shadow: 0 4px 15px rgba(109, 123, 255, 0.3);
 }
 
-.start-timer-btn:hover {
-  background: #229954;
+.focus-btn-primary:hover:not(:disabled) {
+  background: #5a6fd8;
   transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(109, 123, 255, 0.4);
 }
 
-.pause-timer-btn {
-  background: #f39c12;
+.focus-btn-secondary {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.focus-btn-secondary:hover:not(:disabled) {
+  background: var(--active-bg);
   color: white;
-}
-
-.pause-timer-btn:hover {
-  background: #e67e22;
   transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(109, 123, 255, 0.3);
 }
 
-.reset-timer-btn {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+
+
+/* Stats Section */
+.stats-section {
+  margin-bottom: 2rem;
 }
 
-.reset-timer-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
+.stats-card {
+  background: var(--bg-secondary);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 1rem;
+  background: var(--bg-primary);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.stat-number {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--active-bg);
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* Config Section */
+.config-section {
+  margin-bottom: 2rem;
+}
+
+.config-card {
+  background: var(--bg-secondary);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
 }
 
 /* Timer Configuration */
@@ -404,22 +473,32 @@
 .config-item {
   display: flex;
   flex-direction: column;
+  padding: 1rem;
+  background: var(--bg-primary);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
 }
 
-.config-item label {
+.config-label {
   font-size: 0.9rem;
   margin-bottom: 0.5rem;
-  opacity: 0.8;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.config-value {
+  font-size: 1rem;
+  color: var(--text-primary);
+  font-weight: 500;
 }
 
 .config-item input {
   padding: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  color: inherit;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   font-size: 1rem;
-  backdrop-filter: blur(10px);
 }
 
 .config-item input:focus {

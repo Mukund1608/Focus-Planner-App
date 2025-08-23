@@ -23,9 +23,9 @@ const TaskCard: React.FC<TaskCardProps> = ({
       case PriorityLevel.URGENT:
         return '#EF4444'; // danger
       case PriorityLevel.HIGH:
-        return '#F59E0B'; // warning
+        return '#6D7BFF'; // blue-accent (changed from orange)
       case PriorityLevel.MEDIUM:
-        return '#6D7BFF'; // blue-accent
+        return '#8B5CF6'; // purple
       case PriorityLevel.LOW:
         return '#22C55E'; // success
       default:
@@ -115,22 +115,22 @@ const TaskCard: React.FC<TaskCardProps> = ({
             )}
           </div>
           
-          <div className="quest-actions">
-            <button 
-              className="quest-action-btn" 
-              onClick={() => onEdit(task)}
-              title="Edit quest"
-            >
-              ✏️
-            </button>
-            <button 
-              className="quest-action-btn" 
-              onClick={() => onDelete(task.id)}
-              title="Delete quest"
-            >
-              🗑️
-            </button>
-          </div>
+                     <div className="quest-actions">
+             <button 
+               className="quest-action-btn" 
+               onClick={() => onEdit(task)}
+               title="Edit quest"
+             >
+               ✏️
+             </button>
+             <button 
+               className="quest-action-btn" 
+               onClick={() => onDelete(task.id)}
+               title="Delete quest"
+             >
+               🗑️
+             </button>
+           </div>
         </div>
 
         <div className="quest-main">

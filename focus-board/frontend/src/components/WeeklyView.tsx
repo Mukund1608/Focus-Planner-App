@@ -76,9 +76,6 @@ const WeeklyView: React.FC<WeeklyViewProps> = ({
     <div className={`weekly-view ${theme}`}>
       <div className="weekly-header">
         <h1 className="text-display text-primary">Weekly Mission</h1>
-        <p className="text-body-lg text-secondary">
-          Plan your week and track your progress across all your quests!
-        </p>
       </div>
 
       {/* Week Navigation */}
@@ -102,37 +99,11 @@ const WeeklyView: React.FC<WeeklyViewProps> = ({
         </button>
       </div>
 
-      {/* Weekly Overview */}
-      <div className="weekly-overview">
-        <div className="overview-card">
-          <h3 className="text-h3 text-primary">Weekly Progress</h3>
-          <div className="progress-stats">
-            <div className="stat">
-              <span className="stat-number">{weeklyTasks.length}</span>
-              <span className="stat-label">Total Quests</span>
-            </div>
-            <div className="stat">
-              <span className="stat-number">{completedTasks.length}</span>
-              <span className="stat-label">Completed</span>
-            </div>
-            <div className="stat">
-              <span className="stat-number">{inProgressTasks.length}</span>
-              <span className="stat-label">In Progress</span>
-            </div>
-            <div className="stat">
-              <span className="stat-number">
-                {weeklyTasks.length > 0 ? Math.round((completedTasks.length / weeklyTasks.length) * 100) : 0}%
-              </span>
-              <span className="stat-label">Success Rate</span>
-            </div>
-          </div>
-        </div>
-      </div>
+
 
       {/* Weekly Calendar */}
       <div className="weekly-calendar">
         <div className="calendar-header">
-          <h3 className="text-h3 text-primary">Weekly Schedule</h3>
           <button
             className="btn-primary"
             onClick={() => {
