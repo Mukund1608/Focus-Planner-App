@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { signOut, useSessionContext } from 'supertokens-auth-react/recipe/session';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
+import { ThemeToggle } from './ThemeToggle';
 import './AppLayout.css';
 import OfflineStatus from './OfflineStatus';
 
@@ -13,7 +14,7 @@ interface AppLayoutProps {
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isDarkMode, toggleTheme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const session = useSessionContext();
 
   const getIsDesktop = () => (typeof window !== 'undefined' ? window.innerWidth > 1024 : true);
@@ -57,7 +58,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     }
   };
 
-  const rootClasses = `app-layout ${isDarkMode ? 'dark' : 'light'} ${isDesktop && !isSidebarOpen ? 'sidebar-collapsed' : ''}`;
+  const rootClasses = `app-layout ${theme === 'dark' ? 'dark' : 'light'} ${isDesktop && !isSidebarOpen ? 'sidebar-collapsed' : ''}`;
   const asideClasses = `sidebar ${!isDesktop ? (isSidebarOpen ? 'open' : '') : (!isSidebarOpen ? 'hidden' : '')}`;
 
   return (
@@ -86,9 +87,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           </ul>
         </nav>
         <div className="sidebar-footer">
-          <button className="theme-toggle" onClick={toggleTheme}>
-            {isDarkMode ? '☀️' : '🌙'}
-          </button>
+          <ThemeToggle className="theme-toggle" />
           {session.doesSessionExist ? (
             <button className="logout-btn" onClick={handleLogout}>
               <span className="logout-icon">🚪</span>

@@ -1,0 +1,427 @@
+.weekly-view-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.weekly-view-header {
+  margin-bottom: 32px;
+}
+
+.week-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.nav-btn {
+  background: #f3f4f6;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #374151;
+}
+
+.nav-btn:hover {
+  background: #e5e7eb;
+  transform: scale(1.05);
+}
+
+.nav-btn:active {
+  transform: scale(0.95);
+}
+
+.current-week {
+  text-align: center;
+}
+
+.week-title {
+  margin: 0 0 4px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.week-range {
+  font-size: 16px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.progress-summary {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #f3f4f6;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #059669);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.weekly-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.day-column {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+}
+
+.day-column.today {
+  border-color: #2563eb;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+}
+
+.day-header {
+  text-align: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.day-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.day-date {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  margin-top: 4px;
+}
+
+.today-indicator {
+  background: #2563eb;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 8px;
+  margin-top: 4px;
+  display: inline-block;
+}
+
+.day-progress {
+  margin-bottom: 16px;
+}
+
+.day-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: #f3f4f6;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.day-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #059669);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.day-task-count {
+  text-align: center;
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.day-tasks {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  max-height: 280px;
+}
+
+.empty-day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #9ca3af;
+  font-size: 14px;
+  font-style: italic;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  margin-top: 24px;
+}
+
+.empty-state h2 {
+  margin: 0 0 12px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 16px;
+  color: #6b7280;
+}
+
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 18px;
+  color: #6b7280;
+}
+
+.error {
+  text-align: center;
+  padding: 40px 20px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  color: #dc2626;
+}
+
+.error p {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+}
+
+.btn-retry {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-retry:hover {
+  background: #b91c1c;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+  .weekly-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .weekly-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .weekly-view-container {
+    padding: 16px;
+  }
+
+  .week-navigation {
+    gap: 16px;
+  }
+
+  .nav-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .week-title {
+    font-size: 24px;
+  }
+
+  .weekly-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .day-column {
+    padding: 12px;
+    min-height: 300px;
+  }
+
+  .day-date {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .weekly-view-container {
+    padding: 12px;
+  }
+
+  .week-title {
+    font-size: 20px;
+  }
+
+  .week-range {
+    font-size: 14px;
+  }
+
+  .weekly-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .day-column {
+    padding: 8px;
+    min-height: 250px;
+  }
+
+  .day-date {
+    font-size: 18px;
+  }
+
+  .day-name {
+    font-size: 12px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .weekly-view-container {
+    background: #111827;
+    color: #f9fafb;
+  }
+
+  .week-title {
+    color: #f9fafb;
+  }
+
+  .week-range {
+    color: #9ca3af;
+  }
+
+  .progress-summary,
+  .day-column,
+  .empty-state {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .progress-bar,
+  .day-progress-bar {
+    background: #374151;
+  }
+
+  .progress-text {
+    color: #d1d5db;
+  }
+
+  .nav-btn {
+    background: #374151;
+    color: #d1d5db;
+  }
+
+  .nav-btn:hover {
+    background: #4b5563;
+  }
+
+  .day-header {
+    border-bottom-color: #374151;
+  }
+
+  .day-name {
+    color: #9ca3af;
+  }
+
+  .day-date {
+    color: #f9fafb;
+  }
+
+  .day-task-count {
+    color: #9ca3af;
+  }
+
+  .empty-day {
+    color: #6b7280;
+  }
+
+  .empty-state h2 {
+    color: #f9fafb;
+  }
+
+  .empty-state p {
+    color: #9ca3af;
+  }
+
+  .loading {
+    color: #9ca3af;
+  }
+
+  .error {
+    background: #7f1d1d;
+    border-color: #fca5a5;
+    color: #fca5a5;
+  }
+
+  .btn-retry {
+    background: #ef4444;
+  }
+
+  .btn-retry:hover {
+    background: #dc2626;
+  }
+
+  .day-column.today {
+    border-color: #60a5fa;
+    box-shadow: 0 4px 12px rgba(96, 165, 250, 0.15);
+  }
+
+  .today-indicator {
+    background: #60a5fa;
+  }
+}

@@ -1,55 +1,75 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+
+type Theme = 'light' | 'dark';
 
 interface ThemeContextType {
-  isDarkMode: boolean;
+  theme: Theme;
   toggleTheme: () => void;
+  setTheme: (theme: Theme) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-interface ThemeProviderProps {
-  children: ReactNode;
-}
-
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    // Check localStorage for saved preference, default to light mode
-    const saved = localStorage.getItem('focusboard-theme');
-    if (saved) {
-      return saved === 'dark';
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setThemeState] = useState<Theme>(() => {
+    // Check localStorage first, then system preference
+    const savedTheme = localStorage.getItem('theme') as Theme;
+    if (savedTheme) {
+      return savedTheme;
     }
+    
     // Check system preference
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+    
+    return 'light';
   });
 
-  useEffect(() => {
-    // Save theme preference to localStorage
-    localStorage.setItem('focusboard-theme', isDarkMode ? 'dark' : 'light');
-    
-    // Apply theme to document body for global CSS variables
-    document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
-  }, [isDarkMode]);
+  const setTheme = (newTheme: Theme) => {
+    setThemeState(newTheme);
+    localStorage.setItem('theme', newTheme);
+  };
 
   const toggleTheme = () => {
-    setIsDarkMode(prev => !prev);
+    setTheme(theme === 'light' ? 'dark' : 'light');
   };
 
-  const value: ThemeContextType = {
-    isDarkMode,
-    toggleTheme,
-  };
+  useEffect(() => {
+    const root = window.document.documentElement;
+    
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [theme]);
+
+  // Listen for system theme changes
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const handleChange = (e: MediaQueryListEvent) => {
+      if (!localStorage.getItem('theme')) {
+        setTheme(e.matches ? 'dark' : 'light');
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
 
   return (
-    <ThemeContext.Provider value={value}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
       {children}
     </ThemeContext.Provider>
   );
-};
+}
 
-export const useTheme = (): ThemeContextType => {
+export function useTheme() {
   const context = useContext(ThemeContext);
   if (context === undefined) {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
   return context;
-};
+}

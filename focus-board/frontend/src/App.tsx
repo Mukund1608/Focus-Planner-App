@@ -19,6 +19,8 @@ import DailyView from "./components/DailyView";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { notificationService } from "./services/notificationService";
 import "./styles/animations.css";
+import { ThemeToggle } from "./components/ThemeToggle";
+
 
 function App() {
     const [isLoading, setIsLoading] = useState(true);
@@ -144,6 +146,8 @@ function App() {
                                             </SessionAuth>
                                         }
                                     />
+                                    
+
 
 
                                 </Routes>
