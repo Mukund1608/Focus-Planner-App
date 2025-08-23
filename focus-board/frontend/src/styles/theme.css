@@ -1,0 +1,210 @@
+/* UpNXT Design System - Theme Tokens */
+
+/* Font Face Declaration */
+@font-face {
+  font-family: "Moonhouse";
+  src: url("/fonts/Moonhouse-yE5M.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* CSS Custom Properties for Design Tokens */
+:root {
+  /* Font Families */
+  --font-display: "Moonhouse", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  --font-body: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  
+  /* Color Palette */
+  --color-blue-ink: #1E2244;
+  --color-blue-accent: #6D7BFF;
+  --color-ivory: #F8F6F0;
+  --color-surface-dark: #24294F;
+  --color-surface-light: #FFFFFF;
+  --color-text-primary-dark: #FFFFFF;
+  --color-text-secondary-dark: #BFC6FF;
+  --color-text-primary-light: #111318;
+  --color-text-secondary-light: #3A3F55;
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-border-dark: #3B3F66;
+  --color-border-light: #E5E7EB;
+  
+  /* Shadows & Radii */
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --shadow-soft: 0 8px 24px rgba(0,0,0,0.12);
+  --shadow-strong: 0 16px 40px rgba(0,0,0,0.18);
+  
+  /* Typography Scale */
+  --text-display-xl: 56px;
+  --text-display-lg: 48px;
+  --text-display: 40px;
+  --text-h1: 32px;
+  --text-h2: 24px;
+  --text-h3: 20px;
+  --text-body-lg: 18px;
+  --text-body: 16px;
+  --text-body-sm: 14px;
+  --text-caption: 13px;
+  --text-button: 15px;
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+  
+  /* Layout */
+  --sidebar-width: 280px;
+  --sidebar-collapsed: 80px;
+  --content-max-width: 1280px;
+  --gutter-mobile: 24px;
+  --gutter-tablet: 32px;
+  --gutter-desktop: 40px;
+}
+
+/* Dark Theme (Default) */
+[data-theme="dark"] {
+  --color-background: var(--color-blue-ink);
+  --color-surface: var(--color-surface-dark);
+  --color-text-primary: var(--color-text-primary-dark);
+  --color-text-secondary: var(--color-text-secondary-dark);
+  --color-border: var(--color-border-dark);
+  --color-accent: var(--color-blue-accent);
+}
+
+/* Light Theme */
+[data-theme="light"] {
+  --color-background: var(--color-ivory);
+  --color-surface: var(--color-surface-light);
+  --color-text-primary: var(--color-text-primary-light);
+  --color-text-secondary: var(--color-text-secondary-light);
+  --color-border: var(--color-border-light);
+  --color-accent: var(--color-blue-accent);
+}
+
+/* Base Styles */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-body);
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: 1.6;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+}
+
+/* Typography Classes */
+.display, .hero, h1.display, .section-title {
+  font-family: var(--font-display);
+  letter-spacing: 0.5px;
+}
+
+.text-display-xl {
+  font-size: var(--text-display-xl);
+  line-height: 1.1;
+  font-family: var(--font-display);
+  letter-spacing: 0.5px;
+}
+
+.text-display-lg {
+  font-size: var(--text-display-lg);
+  line-height: 1.1;
+  font-family: var(--font-display);
+  letter-spacing: 0.5px;
+}
+
+.text-display {
+  font-size: var(--text-display);
+  line-height: 1.1;
+  font-family: var(--font-display);
+  letter-spacing: 0.5px;
+}
+
+.text-h1 {
+  font-size: var(--text-h1);
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+.text-h2 {
+  font-size: var(--text-h2);
+  line-height: 1.25;
+  font-weight: 600;
+}
+
+.text-h3 {
+  font-size: var(--text-h3);
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.text-body-lg {
+  font-size: var(--text-body-lg);
+  line-height: 1.55;
+}
+
+.text-body {
+  font-size: var(--text-body);
+  line-height: 1.6;
+}
+
+.text-body-sm {
+  font-size: var(--text-body-sm);
+  line-height: 1.4;
+}
+
+.text-caption {
+  font-size: var(--text-caption);
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+}
+
+.text-button {
+  font-size: var(--text-button);
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+/* Focus Styles */
+*:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  :root {
+    --color-accent: #4F46E5;
+    --color-border-dark: #6B7280;
+    --color-border-light: #374151;
+  }
+}

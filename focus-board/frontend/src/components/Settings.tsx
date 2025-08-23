@@ -1,578 +1,478 @@
 import React, { useState, useEffect } from 'react';
-import { Task, ReminderType } from '../types/task';
-import { taskAPI } from '../services/api';
+import { useSessionContext } from 'supertokens-auth-react/recipe/session';
+import { useTheme } from '../contexts/ThemeContext';
 import { notificationService } from '../services/notificationService';
+
 import './Settings.css';
 
-interface NotificationSettings {
-  enabled: boolean;
-  taskReminders: boolean;
-  habitReminders: boolean;
-  completionNotifications: boolean;
-  overdueNotifications: boolean;
-  recurringTaskNotifications: boolean;
-  soundEnabled: boolean;
-  vibrationEnabled: boolean;
-}
-
 const Settings: React.FC = () => {
-  const [pendingReminders, setPendingReminders] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
-  const [activeSection, setActiveSection] = useState('notifications');
-  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
-    enabled: false,
-    taskReminders: true,
-    habitReminders: true,
-    completionNotifications: true,
-    overdueNotifications: true,
-    recurringTaskNotifications: true,
-    soundEnabled: true,
-    vibrationEnabled: true
-  });
-  const [testMessage, setTestMessage] = useState('Test notification from FocusBoard');
+  const session = useSessionContext();
+  const { theme, setTheme } = useTheme();
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [emailNotifications, setEmailNotifications] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [reminderTime, setReminderTime] = useState('15');
+  const [testMessage, setTestMessage] = useState('Test notification from UpNXT');
+  const [testType, setTestType] = useState<'basic' | 'task' | 'habit' | 'completion' | 'overdue'>('basic');
+  const [isTestLoading, setIsTestLoading] = useState(false);
+  const [testResult, setTestResult] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
-    checkNotificationPermission();
-    loadPendingReminders();
-    loadNotificationSettings();
+    // Load user preferences from localStorage
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    const savedNotifications = localStorage.getItem('notificationsEnabled') === 'true';
+    const savedEmailNotifications = localStorage.getItem('emailNotifications') === 'true';
+    const savedSoundEnabled = localStorage.getItem('soundEnabled') !== 'false';
+    const savedReminderTime = localStorage.getItem('reminderTime') || '15';
+
+    setTheme(savedTheme as 'light' | 'dark');
+    setNotificationsEnabled(savedNotifications);
+    setEmailNotifications(savedEmailNotifications);
+    setSoundEnabled(savedSoundEnabled);
+    setReminderTime(savedReminderTime);
+  }, [setTheme]);
+
+  const handleThemeChange = (newTheme: 'light' | 'dark') => {
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+  };
+
+  const handleNotificationToggle = (enabled: boolean) => {
+    setNotificationsEnabled(enabled);
+    localStorage.setItem('notificationsEnabled', enabled.toString());
     
-    // Set up periodic reminder checking (every 2 minutes)
-    const interval = setInterval(loadPendingReminders, 2 * 60 * 1000);
-    
-    return () => clearInterval(interval);
-  }, []);
-
-  const checkNotificationPermission = async () => {
-    if ('Notification' in window) {
-      setNotificationPermission(Notification.permission);
-      setNotificationSettings(prev => ({
-        ...prev,
-        enabled: Notification.permission === 'granted'
-      }));
+    if (enabled) {
+      requestNotificationPermission();
     }
   };
 
-  const loadNotificationSettings = () => {
-    const saved = localStorage.getItem('notificationSettings');
-    if (saved) {
-      try {
-        const settings = JSON.parse(saved);
-        setNotificationSettings(prev => ({ ...prev, ...settings }));
-      } catch (error) {
-        console.error('Error loading notification settings:', error);
-      }
-    }
+  const handleEmailNotificationToggle = (enabled: boolean) => {
+    setEmailNotifications(enabled);
+    localStorage.setItem('emailNotifications', enabled.toString());
   };
 
-  const saveNotificationSettings = (settings: Partial<NotificationSettings>) => {
-    const newSettings = { ...notificationSettings, ...settings };
-    setNotificationSettings(newSettings);
-    localStorage.setItem('notificationSettings', JSON.stringify(newSettings));
+  const handleSoundToggle = (enabled: boolean) => {
+    setSoundEnabled(enabled);
+    localStorage.setItem('soundEnabled', enabled.toString());
   };
 
-  const loadPendingReminders = async () => {
-    try {
-      setLoading(true);
-      const reminders = await taskAPI.getPendingReminders();
-      setPendingReminders(reminders);
-      setError(null);
-    } catch (err) {
-      setError('Failed to load pending reminders');
-      console.error('Error loading reminders:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleReminderAction = async (task: Task, action: 'view' | 'dismiss') => {
-    try {
-      // Mark reminder as sent
-      await taskAPI.markReminderSent(task.id);
-      
-      // Remove from pending reminders
-      setPendingReminders(prev => prev.filter(r => r.id !== task.id));
-      
-      setSuccess('Reminder processed successfully');
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      setError('Failed to process reminder action');
-      console.error('Error processing reminder:', err);
-    }
+  const handleReminderTimeChange = (time: string) => {
+    setReminderTime(time);
+    localStorage.setItem('reminderTime', time);
   };
 
   const requestNotificationPermission = async () => {
-    try {
-      const granted = await notificationService.requestPermission();
-      setNotificationPermission(granted ? 'granted' : 'denied');
-      
-      if (granted) {
-        saveNotificationSettings({ enabled: true });
-        setSuccess('Notifications enabled successfully!');
-        setTimeout(() => setSuccess(null), 3000);
+    if ('Notification' in window) {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        setNotificationsEnabled(false);
+        localStorage.setItem('notificationsEnabled', 'false');
+      }
+    }
+  };
+
+  const handleExportData = () => {
+    // Export user data
+    const userData = {
+      theme,
+      notificationsEnabled,
+      emailNotifications,
+      soundEnabled,
+      reminderTime,
+      exportDate: new Date().toISOString()
+    };
+
+    const dataStr = JSON.stringify(userData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'upnxt-settings.json';
+    link.click();
+    
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportData = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target?.result as string);
         
-        // Process any pending reminders that should show notifications
-        await processPendingReminders();
-      } else {
-        setError('Notification permission was denied. Please enable it in your browser settings.');
-        setTimeout(() => setError(null), 5000);
-      }
-    } catch (err) {
-      setError('Error requesting notification permission');
-      console.error('Error requesting notification permission:', err);
-    }
-  };
-
-  const processPendingReminders = async () => {
-    if (notificationPermission !== 'granted') {
-      return;
-    }
-
-    for (const reminder of pendingReminders) {
-      if (reminder.reminder_type === ReminderType.BROWSER || reminder.reminder_type === ReminderType.BOTH) {
-        try {
-          await notificationService.showTaskReminder(reminder.title, reminder.due_date || '', reminder.id);
-        } catch (err) {
-          console.error('Error showing notification for task:', reminder.id, err);
+        if (data.theme) handleThemeChange(data.theme);
+        if (typeof data.notificationsEnabled === 'boolean') {
+          handleNotificationToggle(data.notificationsEnabled);
         }
-      }
-    }
-  };
-
-  const processRecurringTasks = async () => {
-    try {
-      setLoading(true);
-      const result = await taskAPI.processRecurring();
-      
-      if (result.created_tasks.length > 0) {
-        // Show notifications for new recurring tasks
-        for (const task of result.created_tasks) {
-          if (task.next_occurrence) {
-            await notificationService.showRecurringTaskCreated(task.title, task.next_occurrence);
-          }
+        if (typeof data.emailNotifications === 'boolean') {
+          handleEmailNotificationToggle(data.emailNotifications);
         }
-        setSuccess(`${result.created_tasks.length} recurring tasks processed successfully`);
-      } else {
-        setSuccess('No recurring tasks to process');
+        if (typeof data.soundEnabled === 'boolean') {
+          handleSoundToggle(data.soundEnabled);
+        }
+        if (data.reminderTime) {
+          handleReminderTimeChange(data.reminderTime);
+        }
+        
+        alert('Settings imported successfully!');
+      } catch {
+        alert('Failed to import settings. Please check the file format.');
       }
-      
-      setError(null);
-    } catch (err) {
-      setError('Failed to process recurring tasks');
-      console.error('Error processing recurring tasks:', err);
-    } finally {
-      setLoading(false);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleClearData = () => {
+    if (window.confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+      localStorage.clear();
+      window.location.reload();
     }
   };
 
-  const testNotification = async () => {
-    try {
-      await notificationService.testNotification(testMessage);
-      setSuccess('Test notification sent successfully!');
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      setError('Failed to send test notification');
-      console.error('Test notification failed:', err);
-    }
-  };
+  const runNotificationTest = async () => {
+    setIsTestLoading(true);
+    setTestResult(null);
 
-  const clearAllReminders = async () => {
     try {
-      setLoading(true);
-      for (const reminder of pendingReminders) {
-        await taskAPI.markReminderSent(reminder.id);
+      switch (testType) {
+        case 'basic':
+          await notificationService.testNotification(testMessage);
+          break;
+        case 'task':
+          await notificationService.showTaskReminder(
+            'Test Task',
+            new Date(Date.now() + 60000).toISOString(),
+            999
+          );
+          break;
+        case 'habit':
+          await notificationService.showHabitReminder('Test Habit', 5);
+          break;
+        case 'completion':
+          await notificationService.showTaskCompleted('Test Task');
+          break;
+        case 'overdue':
+          await notificationService.showTaskOverdue('Test Task', 999);
+          break;
       }
-      setPendingReminders([]);
-      setSuccess('All reminders cleared successfully');
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      setError('Failed to clear reminders');
-      console.error('Error clearing reminders:', err);
+
+      setTestResult({
+        type: 'success',
+        message: `${testType.charAt(0).toUpperCase() + testType.slice(1)} notification sent successfully!`
+      });
+    } catch (error) {
+      setTestResult({
+        type: 'error',
+        message: `Failed to send notification: ${error instanceof Error ? error.message : 'Unknown error'}`
+      });
     } finally {
-      setLoading(false);
+      setIsTestLoading(false);
     }
   };
 
-  const sections = [
-    { id: 'notifications', label: 'Notifications', icon: '🔔' },
-    { id: 'reminders', label: 'Reminders', icon: '⏰' },
-    { id: 'appearance', label: 'Appearance', icon: '🎨' },
-    { id: 'account', label: 'Account', icon: '👤' }
-  ];
+  const getPermissionStatus = () => {
+    const permission = notificationService.getPermissionStatus();
+    const isSupported = notificationService.isSupported();
+    const isInitialized = notificationService.isServiceInitialized();
 
-  const renderSectionContent = () => {
-    switch (activeSection) {
-      case 'notifications':
-        return (
-          <div className="settings-section">
-            <h3>Notification Settings</h3>
-            
-            {success && (
-              <div className="success-message">
-                {success}
-                <button onClick={() => setSuccess(null)}>×</button>
-              </div>
-            )}
-            
-            {error && (
-              <div className="error-message">
-                {error}
-                <button onClick={() => setError(null)}>×</button>
-              </div>
-            )}
+    if (!isSupported) {
+      return { status: 'unsupported', message: 'Notifications not supported in this browser' };
+    }
 
-            <div className="notification-status-card">
-              <div className="status-header">
-                <h4>Browser Notifications</h4>
-                <div className="status-indicator">
-                  {notificationPermission === 'granted' && (
-                    <span className="status-badge success">✓ Enabled</span>
-                  )}
-                  {notificationPermission === 'denied' && (
-                    <span className="status-badge error">✗ Disabled</span>
-                  )}
-                  {notificationPermission === 'default' && (
-                    <span className="status-badge info">? Not Set</span>
-                  )}
-                </div>
-              </div>
-              
-              <p className="status-description">
-                {notificationPermission === 'granted' 
-                  ? 'You will receive notifications for task reminders and updates.'
-                  : notificationPermission === 'denied'
-                  ? 'Notifications are disabled. Please enable them in your browser settings.'
-                  : 'Click "Enable Notifications" to receive task reminders and updates.'
-                }
-              </p>
+    if (!isInitialized) {
+      return { status: 'initializing', message: 'Notification service is initializing...' };
+    }
 
-                {notificationPermission === 'default' && (
-                  <button onClick={requestNotificationPermission} className="btn-primary">
-                    Enable Notifications
-                  </button>
-                )}
-
-                {notificationPermission === 'denied' && (
-                <div className="permission-help">
-                  <p>To enable notifications:</p>
-                  <ol>
-                    <li>Click the lock/info icon in your browser's address bar</li>
-                    <li>Change "Notifications" to "Allow"</li>
-                    <li>Refresh this page</li>
-                  </ol>
-                </div>
-              )}
-            </div>
-
-            {notificationPermission === 'granted' && (
-              <>
-                <div className="notification-options">
-                  <h4>Notification Types</h4>
-                  
-                  <div className="setting-item">
-                    <div className="setting-info">
-                      <h5>Task Reminders</h5>
-                      <p>Get notified when tasks are due soon</p>
-                    </div>
-                    <div className="setting-control">
-                      <label className="toggle-switch">
-                        <input
-                          type="checkbox"
-                          checked={notificationSettings.taskReminders}
-                          onChange={(e) => saveNotificationSettings({ taskReminders: e.target.checked })}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="setting-item">
-                    <div className="setting-info">
-                      <h5>Habit Reminders</h5>
-                      <p>Get reminded to complete your daily habits</p>
-                    </div>
-                    <div className="setting-control">
-                      <label className="toggle-switch">
-                        <input
-                          type="checkbox"
-                          checked={notificationSettings.habitReminders}
-                          onChange={(e) => saveNotificationSettings({ habitReminders: e.target.checked })}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="setting-item">
-                    <div className="setting-info">
-                      <h5>Completion Notifications</h5>
-                      <p>Celebrate when you complete tasks</p>
-                    </div>
-                    <div className="setting-control">
-                      <label className="toggle-switch">
-                        <input
-                          type="checkbox"
-                          checked={notificationSettings.completionNotifications}
-                          onChange={(e) => saveNotificationSettings({ completionNotifications: e.target.checked })}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="setting-item">
-                    <div className="setting-info">
-                      <h5>Overdue Notifications</h5>
-                      <p>Get notified about overdue tasks</p>
-                    </div>
-                    <div className="setting-control">
-                      <label className="toggle-switch">
-                        <input
-                          type="checkbox"
-                          checked={notificationSettings.overdueNotifications}
-                          onChange={(e) => saveNotificationSettings({ overdueNotifications: e.target.checked })}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="setting-item">
-                    <div className="setting-info">
-                      <h5>Recurring Task Notifications</h5>
-                      <p>Get notified when new recurring tasks are created</p>
-                    </div>
-                    <div className="setting-control">
-                      <label className="toggle-switch">
-                        <input
-                          type="checkbox"
-                          checked={notificationSettings.recurringTaskNotifications}
-                          onChange={(e) => saveNotificationSettings({ recurringTaskNotifications: e.target.checked })}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="notification-options">
-                  <h4>Notification Preferences</h4>
-                  
-                  <div className="setting-item">
-                    <div className="setting-info">
-                      <h5>Sound</h5>
-                      <p>Play sound with notifications</p>
-                    </div>
-                    <div className="setting-control">
-                      <label className="toggle-switch">
-                        <input
-                          type="checkbox"
-                          checked={notificationSettings.soundEnabled}
-                          onChange={(e) => saveNotificationSettings({ soundEnabled: e.target.checked })}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="setting-item">
-                    <div className="setting-info">
-                      <h5>Vibration</h5>
-                      <p>Vibrate device with notifications (mobile)</p>
-                    </div>
-                    <div className="setting-control">
-                      <label className="toggle-switch">
-                        <input
-                          type="checkbox"
-                          checked={notificationSettings.vibrationEnabled}
-                          onChange={(e) => saveNotificationSettings({ vibrationEnabled: e.target.checked })}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
-              </div>
-            </div>
-                </div>
-
-                <div className="notification-test">
-                  <h4>Test Notifications</h4>
-                  <p>Click the button below to open the notification test center for comprehensive testing.</p>
-                  <button 
-                    onClick={() => {
-                      // Open notification test in a new window/tab
-                      window.open('/notification-test', '_blank');
-                    }}
-                    className="btn-primary"
-                  >
-                    Open Notification Test Center
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        );
-
-      case 'reminders':
-        return (
-          <div className="settings-section">
-            <h3>Reminder Management</h3>
-            
-            {success && (
-              <div className="success-message">
-                {success}
-                <button onClick={() => setSuccess(null)}>×</button>
-              </div>
-            )}
-            
-            {error && (
-              <div className="error-message">
-                {error}
-                <button onClick={() => setError(null)}>×</button>
-              </div>
-            )}
-
-            {pendingReminders.length > 0 && (
-              <div className="pending-reminders">
-                <div className="reminders-header">
-                <h4>Pending Reminders ({pendingReminders.length})</h4>
-                  <button 
-                    onClick={clearAllReminders}
-                    disabled={loading}
-                    className="btn-clear"
-                  >
-                    Clear All
-                  </button>
-                </div>
-                <div className="reminders-list">
-                  {pendingReminders.map(reminder => (
-                    <div key={reminder.id} className="reminder-item">
-                      <div className="reminder-content">
-                        <h5>{reminder.title}</h5>
-                        <p className="reminder-time">
-                          Due: {new Date(reminder.due_date || '').toLocaleString()}
-                        </p>
-                        <span className="reminder-type">
-                          {reminder.reminder_type === ReminderType.BROWSER ? 'Browser' : 
-                           reminder.reminder_type === ReminderType.EMAIL ? 'Email' : 'Both'}
-                        </span>
-                      </div>
-                      <div className="reminder-actions">
-                        <button 
-                          onClick={() => handleReminderAction(reminder, 'dismiss')}
-                          className="btn-dismiss"
-                        >
-                          Dismiss
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {pendingReminders.length === 0 && (
-              <div className="empty-state">
-                <div className="empty-icon">⏰</div>
-                <h4>No Pending Reminders</h4>
-                <p>All your reminders are up to date!</p>
-              </div>
-            )}
-
-            <div className="settings-actions">
-              <button 
-                onClick={loadPendingReminders}
-                disabled={loading}
-                className="btn-secondary"
-              >
-                {loading ? 'Loading...' : 'Refresh Reminders'}
-              </button>
-              <button 
-                onClick={processRecurringTasks}
-                disabled={loading}
-                className="btn-secondary"
-              >
-                Process Recurring Tasks
-              </button>
-              <button 
-                onClick={async () => {
-                  try {
-                    await notificationService.manualCheck();
-                    setSuccess('Manual reminder check completed');
-                    setTimeout(() => setSuccess(null), 3000);
-                  } catch (err) {
-                    setError('Manual check failed');
-                    console.error('Manual check failed:', err);
-                  }
-                }}
-                className="btn-secondary"
-              >
-                Manual Reminder Check
-              </button>
-            </div>
-          </div>
-        );
-
-      case 'appearance':
-        return (
-          <div className="settings-section">
-            <h3>Appearance Settings</h3>
-            <div className="setting-item">
-              <div className="setting-info">
-                <h4>Dark Mode</h4>
-                <p>Switch between light and dark themes</p>
-              </div>
-              <div className="setting-control">
-                <span className="status-badge info">Coming Soon</span>
-              </div>
-            </div>
-          </div>
-        );
-
-      case 'account':
-        return (
-          <div className="settings-section">
-            <h3>Account Settings</h3>
-            <div className="setting-item">
-              <div className="setting-info">
-                <h4>Profile</h4>
-                <p>Manage your account information</p>
-              </div>
-              <div className="setting-control">
-                <span className="status-badge info">Coming Soon</span>
-              </div>
-            </div>
-          </div>
-        );
-
+    switch (permission) {
+      case 'granted':
+        return { status: 'granted', message: 'Notifications are enabled and working' };
+      case 'denied':
+        return { status: 'denied', message: 'Notifications are disabled. Please enable them in browser settings.' };
+      case 'default':
+        return { status: 'default', message: 'Notification permission not set. Click "Enable Notifications" first.' };
       default:
-        return null;
+        return { status: 'unknown', message: 'Unknown permission status' };
     }
   };
 
   return (
-    <div className="settings-container">
+    <div className={`settings ${theme}`}>
       <div className="settings-header">
-        <h2>Settings</h2>
-        <p>Customize your FocusBoard experience</p>
+        <h1 className="text-display text-primary">Settings</h1>
+        <p className="text-body-lg text-secondary">
+          Customize your UpNXT experience and manage your preferences.
+        </p>
       </div>
 
-      <div className="settings-content">
-        <div className="settings-sidebar">
-          {sections.map(section => (
-            <button
-              key={section.id}
-              className={`sidebar-item ${activeSection === section.id ? 'active' : ''}`}
-              onClick={() => setActiveSection(section.id)}
-            >
-              <span className="sidebar-icon">{section.icon}</span>
-              <span className="sidebar-label">{section.label}</span>
-            </button>
-          ))}
+      <div className="settings-container">
+        {/* Appearance Settings */}
+        <div className="settings-section">
+          <h2 className="text-h2 text-primary">Appearance</h2>
+          <div className="setting-item">
+            <div className="setting-info">
+              <h3 className="text-h3 text-primary">Theme</h3>
+              <p className="text-body text-secondary">Choose your preferred color scheme</p>
+            </div>
+            <div className="setting-control">
+              <div className="theme-toggle">
+                <button
+                  className={`theme-btn ${theme === 'light' ? 'active' : ''}`}
+                  onClick={() => handleThemeChange('light')}
+                >
+                  ☀️ Light
+                </button>
+                <button
+                  className={`theme-btn ${theme === 'dark' ? 'active' : ''}`}
+                  onClick={() => handleThemeChange('dark')}
+                >
+                  🌙 Dark
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="settings-main">
-          {renderSectionContent()}
+        {/* Notification Settings */}
+        <div className="settings-section">
+          <h2 className="text-h2 text-primary">Notifications</h2>
+          
+          <div className="setting-item">
+            <div className="setting-info">
+              <h3 className="text-h3 text-primary">Push Notifications</h3>
+              <p className="text-body text-secondary">Receive notifications for quest reminders</p>
+            </div>
+            <div className="setting-control">
+              <label className="toggle-switch">
+                <input
+                  type="checkbox"
+                  checked={notificationsEnabled}
+                  onChange={(e) => handleNotificationToggle(e.target.checked)}
+                />
+                <span className="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <h3 className="text-h3 text-primary">Email Notifications</h3>
+              <p className="text-body text-secondary">Receive email reminders for important quests</p>
+            </div>
+            <div className="setting-control">
+              <label className="toggle-switch">
+                <input
+                  type="checkbox"
+                  checked={emailNotifications}
+                  onChange={(e) => handleEmailNotificationToggle(e.target.checked)}
+                />
+                <span className="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <h3 className="text-h3 text-primary">Sound Effects</h3>
+              <p className="text-body text-secondary">Play sounds for notifications and quest completion</p>
+            </div>
+            <div className="setting-control">
+              <label className="toggle-switch">
+                <input
+                  type="checkbox"
+                  checked={soundEnabled}
+                  onChange={(e) => handleSoundToggle(e.target.checked)}
+                />
+                <span className="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <h3 className="text-h3 text-primary">Reminder Time</h3>
+              <p className="text-body text-secondary">Minutes before due date to send reminders</p>
+            </div>
+            <div className="setting-control">
+              <select
+                value={reminderTime}
+                onChange={(e) => handleReminderTimeChange(e.target.value)}
+                className="form-select"
+              >
+                <option value="5">5 minutes</option>
+                <option value="15">15 minutes</option>
+                <option value="30">30 minutes</option>
+                <option value="60">1 hour</option>
+                <option value="1440">1 day</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Notification Test */}
+        <div className="settings-section">
+          <h2 className="text-h2 text-primary">Notification Test</h2>
+          
+          <div className="permission-status">
+            <div className={`status-card ${getPermissionStatus().status}`}>
+              <div className="status-icon">
+                {getPermissionStatus().status === 'granted' && '✓'}
+                {getPermissionStatus().status === 'denied' && '✗'}
+                {getPermissionStatus().status === 'default' && '?'}
+                {getPermissionStatus().status === 'unsupported' && '⚠️'}
+                {getPermissionStatus().status === 'initializing' && '⏳'}
+              </div>
+              <div className="status-content">
+                <h4>Permission Status</h4>
+                <p>{getPermissionStatus().message}</p>
+              </div>
+            </div>
+          </div>
+
+          {getPermissionStatus().status === 'granted' && (
+            <div className="test-section">
+              <div className="setting-item">
+                <div className="setting-info">
+                  <h3 className="text-h3 text-primary">Test Notifications</h3>
+                  <p className="text-body text-secondary">Send test notifications to verify they're working</p>
+                </div>
+                <div className="setting-control">
+                  <div className="test-controls">
+                    <select 
+                      value={testType} 
+                      onChange={(e) => setTestType(e.target.value as 'basic' | 'task' | 'habit' | 'completion' | 'overdue')}
+                      className="form-select"
+                    >
+                      <option value="basic">Basic Notification</option>
+                      <option value="task">Task Reminder</option>
+                      <option value="habit">Habit Reminder</option>
+                      <option value="completion">Task Completion</option>
+                      <option value="overdue">Overdue Task</option>
+                    </select>
+                    
+                    <input
+                      type="text"
+                      value={testMessage}
+                      onChange={(e) => setTestMessage(e.target.value)}
+                      placeholder="Enter test message..."
+                      className="form-input"
+                      disabled={testType !== 'basic'}
+                    />
+                    
+                    <button 
+                      onClick={runNotificationTest}
+                      disabled={isTestLoading}
+                      className="btn-primary"
+                    >
+                      {isTestLoading ? 'Sending...' : 'Send Test'}
+                    </button>
+                  </div>
+                  
+                  {testResult && (
+                    <div className={`test-result ${testResult.type}`}>
+                      <span className="result-icon">
+                        {testResult.type === 'success' ? '✓' : '✗'}
+                      </span>
+                      <span className="result-message">{testResult.message}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {getPermissionStatus().status === 'default' && (
+            <div className="setting-item">
+              <div className="setting-info">
+                <h3 className="text-h3 text-primary">Enable Notifications</h3>
+                <p className="text-body text-secondary">To test notifications, you need to enable them first</p>
+              </div>
+              <div className="setting-control">
+                <button 
+                  onClick={async () => {
+                    try {
+                      const granted = await notificationService.requestPermission();
+                      if (granted) {
+                        window.location.reload();
+                      }
+                    } catch (error) {
+                      console.error('Error requesting permission:', error);
+                    }
+                  }}
+                  className="btn-primary"
+                >
+                  Enable Notifications
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Data Management */}
+        <div className="settings-section">
+          <h2 className="text-h2 text-primary">Data Management</h2>
+          
+          <div className="setting-item">
+            <div className="setting-info">
+              <h3 className="text-h3 text-primary">Export Settings</h3>
+              <p className="text-body text-secondary">Download your settings as a backup</p>
+            </div>
+            <div className="setting-control">
+              <button className="btn-secondary" onClick={handleExportData}>
+                Export
+              </button>
+            </div>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <h3 className="text-h3 text-primary">Import Settings</h3>
+              <p className="text-body text-secondary">Restore settings from a backup file</p>
+            </div>
+            <div className="setting-control">
+              <input
+                type="file"
+                accept=".json"
+                onChange={handleImportData}
+                style={{ display: 'none' }}
+                id="import-file"
+              />
+              <label htmlFor="import-file" className="btn-secondary">
+                Import
+              </label>
+            </div>
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <h3 className="text-h3 text-primary">Clear All Data</h3>
+              <p className="text-body text-secondary">Remove all local data and reset to defaults</p>
+            </div>
+            <div className="setting-control">
+              <button className="btn-danger" onClick={handleClearData}>
+                Clear Data
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Account Information */}
+        <div className="settings-section">
+          <h2 className="text-h2 text-primary">Account</h2>
+          
+          <div className="setting-item">
+            <div className="setting-info">
+              <h3 className="text-h3 text-primary">User ID</h3>
+              <p className="text-body text-secondary">Your unique identifier</p>
+            </div>
+            <div className="setting-control">
+              <span className="text-body text-secondary">
+                {session.loading ? 'Loading...' : session.doesSessionExist ? session.userId : 'Not logged in'}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

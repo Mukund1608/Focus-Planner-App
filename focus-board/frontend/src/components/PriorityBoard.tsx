@@ -1,38 +1,34 @@
 import React, { useState } from 'react';
-import { Droppable, Draggable } from 'react-beautiful-dnd';
-import { Task, PriorityBoard as PriorityBoardType, TaskStatus, TaskCreate } from '../types/task';
+import { Task, TaskStatus, PriorityLevel, TaskCreate, TaskUpdate } from '../types/task';
+import type { PriorityBoard as PriorityBoardType } from '../types/task';
 import TaskCard from './TaskCard';
 import TaskForm from './TaskForm';
+import { useTheme } from '../contexts/ThemeContext';
 import './PriorityBoard.css';
 
 interface PriorityBoardProps {
   priorityBoard: PriorityBoardType;
-  onTaskUpdate: (taskId: number, updates: Partial<Task>) => void;
+  onTaskCreate: (taskData: TaskCreate) => void;
+  onTaskUpdate: (task: Task) => void;
   onTaskDelete: (taskId: number) => void;
-  onTaskReorder: (taskId: number, newPosition: number, newPriorityBoardId?: number) => void;
-  onCreateTask: (taskData: TaskCreate) => void;
-  onPriorityBoardUpdate: (priorityBoardId: number, updates: Partial<PriorityBoardType>) => void;
-  onPriorityBoardDelete: (priorityBoardId: number) => void;
 }
 
 const PriorityBoard: React.FC<PriorityBoardProps> = ({
   priorityBoard,
+  onTaskCreate,
   onTaskUpdate,
-  onTaskDelete,
-  onTaskReorder,
-  onCreateTask,
-  onPriorityBoardUpdate,
-  onPriorityBoardDelete
+  onTaskDelete
 }) => {
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [boardName, setBoardName] = useState(priorityBoard.name);
+  const { theme } = useTheme();
 
-  // Remove the handleDragEnd function - it's handled by the parent component
-
-  const handleCreateTask = (taskData: TaskCreate) => {
-    onCreateTask(taskData);
+  const handleCreateTask = (taskData: TaskCreate | TaskUpdate) => {
+    onTaskCreate({
+      ...taskData,
+      priority_board_id: priorityBoard.id,
+      status: TaskStatus.PENDING
+    } as TaskCreate);
     setShowTaskForm(false);
   };
 
@@ -40,143 +36,186 @@ const PriorityBoard: React.FC<PriorityBoardProps> = ({
     setEditingTask(task);
   };
 
-  const handleTaskUpdate = (taskId: number, updates: Partial<Task>) => {
-    onTaskUpdate(taskId, updates);
-    setEditingTask(null);
+  const handleUpdateTask = (taskData: TaskUpdate) => {
+    if (editingTask) {
+      onTaskUpdate({
+        ...editingTask,
+        ...taskData
+      });
+      setEditingTask(null);
+    }
   };
 
-  const handleTaskDelete = (taskId: number) => {
+  const handleDeleteTask = (taskId: number) => {
     onTaskDelete(taskId);
   };
 
-  const handleTaskStatusChange = (taskId: number, status: TaskStatus) => {
-    onTaskUpdate(taskId, { status });
-  };
-
-  const handleNameEdit = () => {
-    if (isEditingName && boardName.trim() !== priorityBoard.name) {
-      onPriorityBoardUpdate(priorityBoard.id, { name: boardName.trim() });
-    }
-    setIsEditingName(!isEditingName);
-  };
-
-  const handleNameKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleNameEdit();
-    } else if (e.key === 'Escape') {
-      setBoardName(priorityBoard.name);
-      setIsEditingName(false);
+  const handleTaskStatusChange = (taskId: number, newStatus: TaskStatus) => {
+    const task = priorityBoard.tasks.find((t: Task) => t.id === taskId);
+    if (task) {
+      onTaskUpdate({
+        ...task,
+        status: newStatus
+      });
     }
   };
 
-  const sortedTasks = [...priorityBoard.tasks].sort((a, b) => {
-    // Handle cases where position might be undefined
-    const posA = a.position ?? 0;
-    const posB = b.position ?? 0;
-    return posA - posB;
-  });
+  const getPriorityTasks = (priority: PriorityLevel) => {
+    return priorityBoard.tasks.filter((task: Task) => task.priority === priority);
+  };
+
+  const getPriorityLabel = (priority: PriorityLevel): string => {
+    switch (priority) {
+      case PriorityLevel.HIGH:
+        return 'Boss Tasks';
+      case PriorityLevel.MEDIUM:
+        return 'Milestones';
+      case PriorityLevel.LOW:
+        return 'Daily Quests';
+      default:
+        return 'Tasks';
+    }
+  };
+
+  const getPriorityIcon = (priority: PriorityLevel): string => {
+    switch (priority) {
+      case PriorityLevel.HIGH:
+        return '🔥';
+      case PriorityLevel.MEDIUM:
+        return '⭐';
+      case PriorityLevel.LOW:
+        return '📝';
+      default:
+        return '📋';
+    }
+  };
+
+  const getPriorityColor = (priority: PriorityLevel): string => {
+    switch (priority) {
+      case PriorityLevel.HIGH:
+        return 'var(--color-danger)';
+      case PriorityLevel.MEDIUM:
+        return 'var(--color-warning)';
+      case PriorityLevel.LOW:
+        return 'var(--color-success)';
+      default:
+        return 'var(--color-text-secondary-dark)';
+    }
+  };
 
   return (
-    <div className="priority-board">
-      <div className="priority-board-header">
-        <div className="board-title">
-          {isEditingName ? (
-            <input
-              type="text"
-              value={boardName}
-              onChange={(e) => setBoardName(e.target.value)}
-              onBlur={handleNameEdit}
-              onKeyDown={handleNameKeyPress}
-              className="board-name-input"
-              autoFocus
-            />
-          ) : (
-            <h3 onClick={() => setIsEditingName(true)} className="board-name">
-              {priorityBoard.name}
-            </h3>
-          )}
-          <span className="task-count">({sortedTasks.length})</span>
+    <div className={`priority-board ${theme}`}>
+      <div className="board-header">
+        <div className="board-info">
+          <h2 className="text-h2 text-primary">{priorityBoard.name}</h2>
+                     <p className="text-body text-secondary">Priority board for organizing quests</p>
         </div>
-        
         <div className="board-actions">
-          <button 
-            className="btn-edit-name" 
-            onClick={handleNameEdit}
-            title="Edit board name"
+          <button
+            className="btn-primary"
+            onClick={() => setShowTaskForm(true)}
           >
-            ✏️
-          </button>
-          <button 
-            className="btn-delete-board" 
-            onClick={() => onPriorityBoardDelete(priorityBoard.id)}
-            title="Delete board"
-          >
-            🗑️
+            + Add Quest
           </button>
         </div>
       </div>
 
-      <div className="priority-board-content">
-        <button 
-          className="btn-add-task"
-          onClick={() => setShowTaskForm(true)}
-        >
-          + Add Task
-        </button>
+      {priorityBoard.tasks.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-illustration">
+            <div className="empty-icon">🎯</div>
+          </div>
+          <h4 className="text-h3 text-primary">No quests yet</h4>
+          <p className="text-body text-secondary">
+            Start your journey by creating your first quest!
+          </p>
+          <button
+            className="btn-primary"
+            onClick={() => setShowTaskForm(true)}
+          >
+            Create Your First Quest
+          </button>
+        </div>
+      ) : (
+        <div className="priority-sections">
+          {Object.values(PriorityLevel).map(priority => {
+            const tasks = getPriorityTasks(priority);
+            if (tasks.length === 0) return null;
 
-        <Droppable droppableId={priorityBoard.id.toString()}>
-          {(provided, snapshot) => (
-            <div
-              ref={provided.innerRef}
-              {...provided.droppableProps}
-              className={`task-list ${snapshot.isDraggingOver ? 'dragging-over' : ''}`}
-            >
-                             {sortedTasks.map((task, index) => {
-                 console.log(`Rendering draggable task: ${task.id} at index ${index}`);
-                 return (
-                   <Draggable key={task.id} draggableId={task.id.toString()} index={index}>
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      className={`draggable-task ${snapshot.isDragging ? 'dragging' : ''}`}
-                    >
-                      <TaskCard
-                        task={task}
-                        onEdit={handleEditTask}
-                        onDelete={handleTaskDelete}
-                        onStatusChange={handleTaskStatusChange}
-                      />
-                    </div>
-                                     )}
-                 </Draggable>
-               );
-               })}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </div>
-
-      {/* Task Creation Form */}
-      {showTaskForm && (
-        <TaskForm
-          priorityBoardId={priorityBoard.id}
-          onSubmit={handleCreateTask}
-          onCancel={() => setShowTaskForm(false)}
-        />
+            return (
+              <div key={priority} className="priority-section">
+                <div className="section-header">
+                  <div className="section-title">
+                    <span className="priority-icon" style={{ color: getPriorityColor(priority) }}>
+                      {getPriorityIcon(priority)}
+                    </span>
+                    <h3 className="text-h3 text-primary">{getPriorityLabel(priority)}</h3>
+                    <span className="task-count">({tasks.length})</span>
+                  </div>
+                </div>
+                                 <div className="tasks-grid">
+                   {tasks.map((task: Task) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      onEdit={handleEditTask}
+                      onDelete={handleDeleteTask}
+                      onStatusChange={handleTaskStatusChange}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
 
-      {/* Task Edit Form */}
+      {/* Task Form Modal */}
+      {showTaskForm && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3 className="text-h3 text-primary">Create New Quest</h3>
+              <button
+                className="btn-tertiary"
+                onClick={() => setShowTaskForm(false)}
+                aria-label="Close modal"
+              >
+                ×
+              </button>
+            </div>
+                         <TaskForm
+               onSubmit={handleCreateTask}
+               onCancel={() => setShowTaskForm(false)}
+               priorityBoardId={priorityBoard.id}
+             />
+          </div>
+        </div>
+      )}
+
+      {/* Edit Task Form Modal */}
       {editingTask && (
-        <TaskForm
-          task={editingTask}
-          priorityBoardId={priorityBoard.id}
-          onSubmit={(updates) => handleTaskUpdate(editingTask.id, updates)}
-          onCancel={() => setEditingTask(null)}
-          isEditing={true}
-        />
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3 className="text-h3 text-primary">Edit Quest</h3>
+              <button
+                className="btn-tertiary"
+                onClick={() => setEditingTask(null)}
+                aria-label="Close modal"
+              >
+                ×
+              </button>
+            </div>
+                         <TaskForm
+               onSubmit={handleUpdateTask}
+               onCancel={() => setEditingTask(null)}
+               task={editingTask}
+               priorityBoardId={priorityBoard.id}
+               isEditing={true}
+             />
+          </div>
+        </div>
       )}
     </div>
   );

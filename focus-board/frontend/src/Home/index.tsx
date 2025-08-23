@@ -5,7 +5,7 @@ import "./LandingPage.css";
 
 export default function Home() {
     const session = useSessionContext();
-    const { isDarkMode, toggleTheme } = useTheme();
+    const { theme, toggleTheme } = useTheme();
 
     if (session.loading) {
         return (
@@ -23,33 +23,34 @@ export default function Home() {
                 <div className="hero-content">
                     <div className="hero-text">
                         <h1 className="hero-title">
-                            <span className="gradient-text">Focus Planner</span>
+                            <span className="gradient-text">UpNXT</span>
                         </h1>
                         <p className="hero-subtitle">
-                            Transform your productivity with intelligent task management. 
+                            Level up your productivity with gamified task management. 
                             <br />
-                            <strong>Prioritize. Focus. Execute.</strong>
+                            <strong>Complete Quests. Earn XP. Level Up.</strong>
                         </p>
                         <p className="hero-description">
-                            The ultimate planning app that helps you organize tasks, build better habits, 
-                            and achieve your goals with laser-sharp focus.
+                            The ultimate productivity app that transforms your daily tasks into exciting quests. 
+                            Build streaks, unlock achievements, and rocket your way to success with our 
+                            gamified approach to getting things done.
                         </p>
                         
                         <div className="hero-actions">
                             {session.doesSessionExist ? (
                                 <Link to="/dashboard" className="cta-button primary">
                                     <span>🚀</span>
-                                    Go to Dashboard
+                                    Launch Mission Control
                                 </Link>
                             ) : (
                                 <>
                                     <Link to="/dashboard" className="cta-button secondary">
                                         <span>👀</span>
-                                        Preview Dashboard
+                                        Preview Quest Board
                                     </Link>
                                     <Link to="/auth" className="cta-button primary">
                                         <span>🔐</span>
-                                        Get Started
+                                        Start Your Journey
                                     </Link>
                                 </>
                             )}
@@ -58,15 +59,15 @@ export default function Home() {
                     
                     <div className="hero-visual">
                         <div className="floating-card card-1">
-                            <span className="card-icon">📋</span>
-                            <span className="card-text">Task Management</span>
+                            <span className="card-icon">⚡</span>
+                            <span className="card-text">Daily Quests</span>
                         </div>
                         <div className="floating-card card-2">
-                            <span className="card-icon">🎯</span>
-                            <span className="card-text">Priority Focus</span>
+                            <span className="card-icon">🏆</span>
+                            <span className="card-text">Achievement System</span>
                         </div>
                         <div className="floating-card card-3">
-                            <span className="card-icon">📊</span>
+                            <span className="card-icon">📈</span>
                             <span className="card-text">Progress Tracking</span>
                         </div>
                     </div>
@@ -76,27 +77,27 @@ export default function Home() {
             {/* Features Section */}
             <section className="features-section">
                 <div className="features-content">
-                    <h2>Why Choose Focus Planner?</h2>
+                    <h2>Why Choose UpNXT?</h2>
                     <div className="features-grid">
                         <div className="feature-card">
                             <div className="feature-icon">🎯</div>
-                            <h3>Smart Prioritization</h3>
-                            <p>Automatically organize tasks by importance and urgency</p>
+                            <h3>Quest-Based Tasks</h3>
+                            <p>Transform mundane tasks into exciting quests with rewards and achievements</p>
                         </div>
                         <div className="feature-card">
-                            <div className="feature-icon">📅</div>
-                            <h3>Flexible Views</h3>
-                            <p>Daily, weekly, and priority board views to match your workflow</p>
+                            <div className="feature-icon">⚡</div>
+                            <h3>Streak System</h3>
+                            <p>Build momentum with daily streaks and unlock bonus rewards</p>
                         </div>
                         <div className="feature-card">
                             <div className="feature-icon">🔄</div>
-                            <h3>Habit Building</h3>
-                            <p>Track and build positive habits that stick</p>
+                            <h3>Habit Evolution</h3>
+                            <p>Level up your habits and watch them evolve into powerful routines</p>
                         </div>
                         <div className="feature-card">
                             <div className="feature-icon">🎧</div>
                             <h3>Focus Mode</h3>
-                            <p>Distraction-free environment for deep work</p>
+                            <p>Enter the zone with distraction-free deep work sessions</p>
                         </div>
                     </div>
                 </div>
@@ -106,9 +107,9 @@ export default function Home() {
             <button 
                 className="theme-toggle"
                 onClick={toggleTheme}
-                aria-label={`Switch to ${isDarkMode ? 'light' : 'dark'} mode`}
+                aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
             >
-                {isDarkMode ? '☀️' : '🌙'}
+                {theme === 'dark' ? '☀️' : '🌙'}
             </button>
         </div>
     );

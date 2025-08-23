@@ -1,294 +1,404 @@
 import React, { useState, useEffect } from 'react';
-import { DragDropContext, DropResult } from 'react-beautiful-dnd';
-import { Task, PriorityBoard, TaskCreate, TaskUpdate, TaskStatus } from '../types/task';
-import { priorityBoardAPI, taskAPI } from '../services/api';
+import { PriorityBoard, Task, TaskStatus, PriorityLevel, ReminderType, RecurringPattern } from '../types/task';
 import PriorityBoardComponent from './PriorityBoard';
+import { useTheme } from '../contexts/ThemeContext';
 import './PriorityBoards.css';
 
-const PriorityBoards: React.FC = () => {
-  const [priorityBoards, setPriorityBoards] = useState<PriorityBoard[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [showCreateBoard, setShowCreateBoard] = useState(false);
-  const [newBoardName, setNewBoardName] = useState('');
+interface PriorityBoardsProps {
+  boards?: PriorityBoard[];
+  onBoardCreate?: (board: Partial<PriorityBoard>) => void;
+  onTaskCreate?: (task: Partial<PriorityBoard['tasks'][0]>) => void;
+  onTaskUpdate?: (task: PriorityBoard['tasks'][0]) => void;
+  onTaskDelete?: (taskId: number) => void;
+}
 
-  // Load priority boards and tasks on component mount
+const PriorityBoards: React.FC<PriorityBoardsProps> = ({
+  boards: propBoards,
+  onBoardCreate,
+  onTaskCreate,
+  onTaskUpdate,
+  onTaskDelete
+}) => {
+  // Internal state management when no props are provided
+  const [internalBoards, setInternalBoards] = useState<PriorityBoard[]>([]);
+  const boards = propBoards || internalBoards;
+  const [selectedBoard, setSelectedBoard] = useState<PriorityBoard | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newBoard, setNewBoard] = useState({
+    name: ''
+  });
+  const { theme } = useTheme();
+
+  // Load demo data on mount if no props provided
   useEffect(() => {
-    loadPriorityBoards();
-  }, []);
-
-  const loadPriorityBoards = async () => {
-    try {
-      setLoading(true);
-      const boards = await priorityBoardAPI.getAll();
-      console.log('📋 Loaded priority boards:', boards);
-      setPriorityBoards(boards);
-      setError(null);
-    } catch (err) {
-      setError('Failed to load priority boards');
-      console.error('Error loading priority boards:', err);
-    } finally {
-      setLoading(false);
+    if (!propBoards) {
+      const demoBoards: PriorityBoard[] = [
+        {
+          id: 1,
+          name: 'Work Projects',
+          user_id: 'demo-user',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          tasks: [
+            {
+              id: 1,
+              title: 'Complete project proposal',
+              description: 'Write and submit the Q1 project proposal',
+              status: TaskStatus.IN_PROGRESS,
+              priority: PriorityLevel.HIGH,
+              due_date: new Date(Date.now() + 86400000).toISOString(),
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              user_id: 'demo-user',
+              priority_board_id: 1,
+              position: 0,
+              reminder_enabled: true,
+              reminder_type: ReminderType.EMAIL,
+              reminder_sent: false,
+              is_recurring: false,
+              recurring_pattern: RecurringPattern.NONE
+            },
+            {
+              id: 2,
+              title: 'Review team feedback',
+              description: 'Go through all team member feedback on the project',
+              status: TaskStatus.PENDING,
+              priority: PriorityLevel.MEDIUM,
+              due_date: new Date(Date.now() + 172800000).toISOString(),
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              user_id: 'demo-user',
+              priority_board_id: 1,
+              position: 1,
+              reminder_enabled: false,
+              reminder_type: ReminderType.EMAIL,
+              reminder_sent: false,
+              is_recurring: false,
+              recurring_pattern: RecurringPattern.NONE
+            }
+          ]
+        },
+        {
+          id: 2,
+          name: 'Personal Goals',
+          user_id: 'demo-user',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          tasks: [
+            {
+              id: 3,
+              title: 'Read 2 chapters of productivity book',
+              description: 'Continue reading "Getting Things Done"',
+              status: TaskStatus.PENDING,
+              priority: PriorityLevel.LOW,
+              due_date: new Date(Date.now() + 259200000).toISOString(),
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              user_id: 'demo-user',
+              priority_board_id: 2,
+              position: 0,
+              reminder_enabled: true,
+              reminder_type: ReminderType.EMAIL,
+              reminder_sent: false,
+              is_recurring: true,
+              recurring_pattern: RecurringPattern.WEEKLY
+            }
+          ]
+        }
+      ];
+      setInternalBoards(demoBoards);
+      setSelectedBoard(demoBoards[0]);
     }
-  };
+  }, [propBoards]);
 
-  const handleCreatePriorityBoard = async () => {
-    if (!newBoardName.trim()) return;
+  const handleCreateBoard = (boardData: { name: string }) => {
+    const newBoardData: PriorityBoard = {
+      id: Date.now(),
+      name: boardData.name,
+      user_id: 'demo-user',
+      tasks: [],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
 
-    try {
-      const newBoard = await priorityBoardAPI.create({ name: newBoardName.trim() });
-      setPriorityBoards(prev => [...prev, newBoard]);
-      setNewBoardName('');
-      setShowCreateBoard(false);
-    } catch (err) {
-      setError('Failed to create priority board');
-      console.error('Error creating priority board:', err);
+    if (onBoardCreate) {
+      onBoardCreate(newBoardData);
+    } else {
+      setInternalBoards(prev => [...prev, newBoardData]);
+      setSelectedBoard(newBoardData);
     }
-  };
-
-  const handleUpdatePriorityBoard = async (boardId: number, updates: Partial<PriorityBoard>) => {
-    try {
-      const updatedBoard = await priorityBoardAPI.update(boardId, updates);
-      setPriorityBoards(prev => 
-        prev.map(board => 
-          board.id === boardId ? { ...board, ...updatedBoard } : board
-        )
-      );
-    } catch (err) {
-      setError('Failed to update priority board');
-      console.error('Error updating priority board:', err);
-    }
-  };
-
-  const handleDeletePriorityBoard = async (boardId: number) => {
-    if (!window.confirm('Are you sure you want to delete this priority board? All tasks will be deleted.')) {
-      return;
-    }
-
-    try {
-      await priorityBoardAPI.delete(boardId);
-      setPriorityBoards(prev => prev.filter(board => board.id !== boardId));
-    } catch (err) {
-      setError('Failed to delete priority board');
-      console.error('Error deleting priority board:', err);
-    }
-  };
-
-  const handleCreateTask = async (taskData: TaskCreate) => {
-    try {
-      const newTask = await taskAPI.create(taskData);
-      setPriorityBoards(prev => 
-        prev.map(board => 
-          board.id === taskData.priority_board_id 
-            ? { ...board, tasks: [...board.tasks, newTask] }
-            : board
-        )
-      );
-    } catch (err) {
-      setError('Failed to create task');
-      console.error('Error creating task:', err);
-    }
-  };
-
-  const handleUpdateTask = async (taskId: number, updates: TaskUpdate) => {
-    try {
-      const updatedTask = await taskAPI.update(taskId, updates);
-      setPriorityBoards(prev => 
-        prev.map(board => ({
-          ...board,
-          tasks: board.tasks.map(task => 
-            task.id === taskId ? { ...task, ...updatedTask } : task
-          )
-        }))
-      );
-    } catch (err) {
-      setError('Failed to update task');
-      console.error('Error updating task:', err);
-    }
-  };
-
-  const handleDeleteTask = async (taskId: number) => {
-    if (!window.confirm('Are you sure you want to delete this task?')) {
-      return;
-    }
-
-    try {
-      await taskAPI.delete(taskId);
-      setPriorityBoards(prev => 
-        prev.map(board => ({
-          ...board,
-          tasks: board.tasks.filter(task => task.id !== taskId)
-        }))
-      );
-    } catch (err) {
-      setError('Failed to delete task');
-      console.error('Error deleting task:', err);
-    }
-  };
-
-  const handleDragEnd = async (result: DropResult) => {
-    console.log('🎯 DRAG END TRIGGERED!');
-    console.log('Main drag end result:', result);
     
-    if (!result.destination) {
-      console.log('No destination in main handler');
-      return;
-    }
+    setShowCreateForm(false);
+    setNewBoard({ name: '' });
+  };
 
-    const { draggableId, destination, source } = result;
-    const taskId = parseInt(draggableId);
-    const sourceBoardId = parseInt(source.droppableId);
-    const destBoardId = parseInt(destination.droppableId);
-    
-    console.log('Main handler - Task ID:', taskId, 'Source Board:', sourceBoardId, 'Dest Board:', destBoardId);
+  const handleBoardSelect = (board: PriorityBoard) => {
+    setSelectedBoard(board);
+  };
 
-    try {
-      // Optimistically update the UI
-      const updatedBoards = [...priorityBoards];
-      const sourceBoard = updatedBoards.find(board => board.id === sourceBoardId);
-      const destBoard = updatedBoards.find(board => board.id === destBoardId);
 
-      if (!sourceBoard || !destBoard) return;
 
-      const task = sourceBoard.tasks.find(t => t.id === taskId);
-      if (!task) return;
+  const handleTaskCreate = (taskData: Partial<Task>) => {
+    if (onTaskCreate) {
+      onTaskCreate(taskData);
+    } else if (selectedBoard) {
+      const newTask: Task = {
+        id: Date.now(),
+        title: taskData.title || 'New Quest',
+        description: taskData.description || '',
+        status: taskData.status || TaskStatus.PENDING,
+        priority: taskData.priority || PriorityLevel.MEDIUM,
+        due_date: taskData.due_date || '',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        user_id: 'demo-user',
+        priority_board_id: selectedBoard.id,
+        position: selectedBoard.tasks.length,
+        reminder_enabled: taskData.reminder_enabled || false,
+        reminder_type: taskData.reminder_type || ReminderType.EMAIL,
+        reminder_sent: false,
+        is_recurring: taskData.is_recurring || false,
+        recurring_pattern: taskData.recurring_pattern || RecurringPattern.NONE
+      };
 
-      // Remove task from source board
-      sourceBoard.tasks = sourceBoard.tasks.filter(t => t.id !== taskId);
+      setInternalBoards(prev => prev.map(board => 
+        board.id === selectedBoard.id 
+          ? { ...board, tasks: [...board.tasks, newTask] }
+          : board
+      ));
       
-      // Add task to destination board at the new position
-      const updatedTask = { ...task, priority_board_id: destBoardId, position: destination.index };
-      destBoard.tasks.splice(destination.index, 0, updatedTask);
-
-      // Update positions for all tasks in both boards
-      sourceBoard.tasks.forEach((t, index) => {
-        t.position = index;
-      });
-      destBoard.tasks.forEach((t, index) => {
-        t.position = index;
-      });
-
-      setPriorityBoards(updatedBoards);
-
-      // Send update to backend
-      console.log('Sending reorder request to backend:', {
-        task_id: taskId,
-        new_position: destination.index,
-        new_priority_board_id: destBoardId
-      });
-      
-      await taskAPI.reorder(taskId, {
-        task_id: taskId,
-        new_position: destination.index,
-        new_priority_board_id: destBoardId
-      });
-      
-      console.log('Reorder request successful');
-    } catch (err) {
-      setError('Failed to reorder task');
-      console.error('Error reordering task:', err);
-      // Reload boards to restore original state
-      loadPriorityBoards();
+      setSelectedBoard(prev => prev ? { ...prev, tasks: [...prev.tasks, newTask] } : null);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="priority-boards-container">
-        <div className="loading">Loading priority boards...</div>
-      </div>
-    );
-  }
+  const handleTaskUpdate = (updatedTask: Task) => {
+    if (onTaskUpdate) {
+      onTaskUpdate(updatedTask);
+    } else if (selectedBoard) {
+      setInternalBoards(prev => prev.map(board => 
+        board.id === selectedBoard.id 
+          ? { ...board, tasks: board.tasks.map(task => task.id === updatedTask.id ? updatedTask : task) }
+          : board
+      ));
+      
+      setSelectedBoard(prev => prev ? {
+        ...prev, 
+        tasks: prev.tasks.map(task => task.id === updatedTask.id ? updatedTask : task)
+      } : null);
+    }
+  };
 
-  if (error) {
+  const handleTaskDelete = (taskId: number) => {
+    if (onTaskDelete) {
+      onTaskDelete(taskId);
+    } else if (selectedBoard) {
+      setInternalBoards(prev => prev.map(board => 
+        board.id === selectedBoard.id 
+          ? { ...board, tasks: board.tasks.filter(task => task.id !== taskId) }
+          : board
+      ));
+      
+      setSelectedBoard(prev => prev ? {
+        ...prev, 
+        tasks: prev.tasks.filter(task => task.id !== taskId)
+      } : null);
+    }
+  };
+
+  if (boards.length === 0) {
     return (
-      <div className="priority-boards-container">
-        <div className="error">
-          <p>{error}</p>
-          <button onClick={loadPriorityBoards} className="btn-retry">
-            Retry
+      <div className={`priority-boards ${theme}`}>
+        <div className="boards-header">
+          <h1 className="text-display text-primary">Priority Boards</h1>
+          <p className="text-body-lg text-secondary">
+            Organize your quests into focused mission boards!
+          </p>
+        </div>
+
+        <div className="empty-state">
+          <div className="empty-illustration">
+            <div className="empty-icon">📋</div>
+          </div>
+          <h4 className="text-h3 text-primary">No boards yet</h4>
+          <p className="text-body text-secondary">
+            Create your first priority board to start organizing your quests!
+          </p>
+          <button
+            className="btn-primary"
+            onClick={() => setShowCreateForm(true)}
+          >
+            Create Your First Board
           </button>
         </div>
+
+        {/* Create Board Form Modal */}
+        {showCreateForm && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h3 className="text-h3 text-primary">Create New Board</h3>
+                <button
+                  className="btn-tertiary"
+                  onClick={() => setShowCreateForm(false)}
+                  aria-label="Close modal"
+                >
+                  ×
+                </button>
+              </div>
+              <form
+                className="board-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleCreateBoard(newBoard);
+                }}
+              >
+                <div className="form-group">
+                  <label htmlFor="board-name" className="form-label">Board Name</label>
+                  <input
+                    id="board-name"
+                    type="text"
+                    className="form-input"
+                    value={newBoard.name}
+                    onChange={(e) => setNewBoard(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="e.g., Work Projects"
+                    required
+                  />
+                </div>
+
+                <div className="form-actions">
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => setShowCreateForm(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    disabled={!newBoard.name.trim()}
+                  >
+                    Create Board
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="priority-boards-container">
-      <div className="priority-boards-header">
-        <h1>Priority Boards</h1>
-        <button 
-          className="btn-create-board"
-          onClick={() => setShowCreateBoard(true)}
+    <div className={`priority-boards ${theme}`}>
+      <div className="boards-header">
+        <h1 className="text-display text-primary">Priority Boards</h1>
+        <p className="text-body-lg text-secondary">
+          Organize your quests into focused mission boards!
+        </p>
+        <button
+          className="btn-primary"
+          onClick={() => setShowCreateForm(true)}
         >
           + Create Board
         </button>
       </div>
 
-      {/* Create Board Form */}
-      {showCreateBoard && (
-        <div className="create-board-form">
-          <input
-            type="text"
-            placeholder="Enter board name"
-            value={newBoardName}
-            onChange={(e) => setNewBoardName(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleCreatePriorityBoard()}
-            className="board-name-input"
-            autoFocus
-          />
-          <div className="form-actions">
-            <button 
-              onClick={() => setShowCreateBoard(false)}
-              className="btn-secondary"
-            >
-              Cancel
-            </button>
-            <button 
-              onClick={handleCreatePriorityBoard}
-              className="btn-primary"
-              disabled={!newBoardName.trim()}
-            >
-              Create
-            </button>
+      <div className="boards-container">
+        {/* Board Selection Sidebar */}
+        <div className="boards-sidebar">
+          <h3 className="text-h3 text-primary">Your Boards</h3>
+          <div className="boards-list">
+            {boards.map(board => (
+              <div
+                key={board.id}
+                className={`board-item ${selectedBoard?.id === board.id ? 'active' : ''}`}
+                onClick={() => handleBoardSelect(board)}
+              >
+                <div className="board-item-info">
+                  <h4 className="text-h4 text-primary">{board.name}</h4>
+                  <span className="task-count">{board.tasks.length} quests</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      )}
 
-      {/* Priority Boards Grid */}
-      <DragDropContext 
-        onDragStart={() => console.log('🚀 DRAG STARTED!')}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="priority-boards-grid">
-          {priorityBoards.map(board => (
+        {/* Selected Board Content */}
+        <div className="board-content">
+          {selectedBoard ? (
             <PriorityBoardComponent
-              key={board.id}
-              priorityBoard={board}
-              onTaskUpdate={handleUpdateTask}
-              onTaskDelete={handleDeleteTask}
-              onTaskReorder={(taskId, newPosition, newBoardId) => {
-                // This is handled by the drag and drop context
-              }}
-              onCreateTask={handleCreateTask}
-              onPriorityBoardUpdate={handleUpdatePriorityBoard}
-              onPriorityBoardDelete={handleDeletePriorityBoard}
+              priorityBoard={selectedBoard}
+              onTaskCreate={handleTaskCreate}
+              onTaskUpdate={handleTaskUpdate}
+              onTaskDelete={handleTaskDelete}
             />
-          ))}
+          ) : (
+            <div className="no-board-selected">
+              <div className="empty-illustration">
+                <div className="empty-icon">📋</div>
+              </div>
+              <h4 className="text-h3 text-primary">Select a Board</h4>
+              <p className="text-body text-secondary">
+                Choose a board from the sidebar to view and manage its quests.
+              </p>
+            </div>
+          )}
         </div>
-      </DragDropContext>
+      </div>
 
-      {/* Empty State */}
-      {priorityBoards.length === 0 && !showCreateBoard && (
-        <div className="empty-state">
-          <h2>No Priority Boards Yet</h2>
-          <p>Create your first priority board to start organizing your tasks!</p>
-          <button 
-            onClick={() => setShowCreateBoard(true)}
-            className="btn-primary"
-          >
-            Create Your First Board
-          </button>
+      {/* Create Board Form Modal */}
+      {showCreateForm && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3 className="text-h3 text-primary">Create New Board</h3>
+              <button
+                className="btn-tertiary"
+                onClick={() => setShowCreateForm(false)}
+                aria-label="Close modal"
+              >
+                ×
+              </button>
+            </div>
+            <form
+              className="board-form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleCreateBoard(newBoard);
+              }}
+            >
+              <div className="form-group">
+                <label htmlFor="board-name" className="form-label">Board Name</label>
+                <input
+                  id="board-name"
+                  type="text"
+                  className="form-input"
+                  value={newBoard.name}
+                  onChange={(e) => setNewBoard(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="e.g., Work Projects"
+                  required
+                />
+              </div>
+
+              <div className="form-actions">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setShowCreateForm(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={!newBoard.name.trim()}
+                >
+                  Create Board
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

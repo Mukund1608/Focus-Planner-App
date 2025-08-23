@@ -77,7 +77,6 @@ class NotificationService {
         badge: '/favicon.ico',
         requireInteraction: false,
         silent: false,
-        vibrate: [200, 100, 200], // Vibration pattern for mobile devices
         ...options
       });
 
@@ -87,15 +86,8 @@ class NotificationService {
       }, 8000);
 
       // Handle notification click
-      notification.onclick = (event) => {
-        event.preventDefault();
+      notification.onclick = () => {
         window.focus();
-        
-        // Handle custom actions if defined
-        if (options?.actions && event.action) {
-          this.handleNotificationAction(event.action, options.data);
-        }
-        
         notification.close();
       };
 
@@ -128,23 +120,7 @@ class NotificationService {
     }
   }
 
-  private handleNotificationAction(action: string, data?: any): void {
-    switch (action) {
-      case 'view':
-        // Navigate to the task or relevant page
-        if (data?.taskId) {
-          // You can implement navigation logic here
-          console.log('Navigate to task:', data.taskId);
-        }
-        break;
-      case 'dismiss':
-        // Notification was dismissed, no action needed
-        console.log('Notification dismissed');
-        break;
-      default:
-        console.log('Unknown notification action:', action);
-    }
-  }
+
 
   async showTaskReminder(taskTitle: string, dueDate: string, taskId?: number): Promise<void> {
     const dueDateObj = new Date(dueDate);
@@ -171,17 +147,7 @@ class NotificationService {
       body: message,
       tag: `task-reminder-${taskId || taskTitle}`,
       requireInteraction: true,
-      data: { taskId },
-      actions: [
-        {
-          action: 'view',
-          title: 'View Task'
-        },
-        {
-          action: 'dismiss',
-          title: 'Dismiss'
-        }
-      ]
+      data: { taskId }
     });
   }
 
@@ -199,8 +165,7 @@ class NotificationService {
     await this.showNotification('🎉 Task Completed!', {
       body: `Great job! You've completed "${taskTitle}"`,
       tag: `task-completed-${taskTitle}`,
-      requireInteraction: false,
-      vibrate: [100, 200, 100] // Different vibration for completion
+      requireInteraction: false
     });
   }
 
@@ -209,17 +174,7 @@ class NotificationService {
       body: `The task "${taskTitle}" is overdue. Please update its status.`,
       tag: `task-overdue-${taskId || taskTitle}`,
       requireInteraction: true,
-      data: { taskId },
-      actions: [
-        {
-          action: 'view',
-          title: 'View Task'
-        },
-        {
-          action: 'dismiss',
-          title: 'Dismiss'
-        }
-      ]
+      data: { taskId }
     });
   }
 
@@ -241,8 +196,7 @@ class NotificationService {
       await this.showNotification('🏆 Streak Milestone!', {
         body: `Congratulations! You've maintained "${habitTitle}" for ${streak} days!`,
         tag: `streak-milestone-${habitTitle}`,
-        requireInteraction: false,
-        vibrate: [200, 100, 200, 100, 200] // Special vibration for milestones
+        requireInteraction: false
       });
     }
   }
