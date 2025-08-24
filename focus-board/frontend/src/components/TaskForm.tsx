@@ -4,7 +4,7 @@ import './TaskForm.css';
 
 interface TaskFormProps {
   task?: Task;
-  priorityBoardId: number;
+  priorityBoardId?: number;
   onSubmit: (taskData: TaskCreate | TaskUpdate) => void;
   onCancel: () => void;
   isEditing?: boolean;
@@ -28,7 +28,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
     reminder_advance: '15',
     is_recurring: false,
     recurring_pattern: RecurringPattern.NONE,
-    ...(isEditing ? {} : { priority_board_id: priorityBoardId })
+    ...(isEditing ? {} : { priority_board_id: priorityBoardId || undefined })
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -77,7 +77,15 @@ const TaskForm: React.FC<TaskFormProps> = ({
     e.preventDefault();
     
     if (validateForm()) {
-      onSubmit(formData);
+      // Convert date string to proper datetime format
+      const processedData = { ...formData };
+      if (processedData.due_date && typeof processedData.due_date === 'string') {
+        // Convert date string to ISO datetime string
+        const date = new Date(processedData.due_date);
+        processedData.due_date = date.toISOString();
+      }
+      
+      onSubmit(processedData);
     }
   };
 

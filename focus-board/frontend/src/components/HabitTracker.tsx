@@ -135,14 +135,8 @@ const HabitTracker: React.FC = () => {
   return (
     <div className={`habit-tracker ${theme}`}>
       <div className="habit-header">
-        <h1 className="text-display text-primary">Habit Tracker</h1>
-      </div>
-
-
-
-      {/* Habits List */}
-      <div className="habits-section">
-        <div className="habits-header">
+        <div className="header-top">
+          <h1 className="text-display text-primary">Habit Tracker</h1>
           <button
             className="btn-primary"
             onClick={() => setShowForm(true)}
@@ -150,6 +144,10 @@ const HabitTracker: React.FC = () => {
             + Add Habit
           </button>
         </div>
+      </div>
+
+      {/* Habits List */}
+      <div className="habits-section">
 
         {habits.length === 0 ? (
           <div className="empty-state">

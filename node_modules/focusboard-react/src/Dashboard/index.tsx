@@ -17,18 +17,7 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  if (!session.doesSessionExist) {
-    return (
-      <div className={`dashboard ${theme}`}>
-        <div className="auth-required">
-          <h1 className="text-display text-primary">Welcome to UpNXT</h1>
-          <p className="text-body-lg text-secondary">
-            Please sign in to access your mission control dashboard.
-          </p>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className={`dashboard ${theme}`}>

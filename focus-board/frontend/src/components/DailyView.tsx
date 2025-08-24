@@ -189,35 +189,8 @@ const DailyView: React.FC<DailyViewProps> = ({
   return (
     <div className={`daily-view ${theme}`}>
       <div className="daily-header">
-        <h1 className="text-display text-primary">Daily Quests</h1>
-      </div>
-
-      {/* Date Navigation */}
-      <div className="date-navigation">
-        <button
-          className="btn-secondary"
-          onClick={() => handleDateChange('prev')}
-          aria-label="Previous day"
-        >
-          ←
-        </button>
-        <h2 className="text-h2 text-primary">
-          {format(selectedDate, 'EEEE, MMMM d, yyyy')}
-        </h2>
-        <button
-          className="btn-secondary"
-          onClick={() => handleDateChange('next')}
-          aria-label="Next day"
-        >
-          →
-        </button>
-      </div>
-
-
-
-      {/* Task List */}
-      <div className="daily-tasks">
-        <div className="tasks-header">
+        <div className="header-top">
+          <h1 className="text-display text-primary">Daily Quests</h1>
           <button
             className="btn-primary"
             onClick={() => setShowTaskForm(true)}
@@ -225,6 +198,31 @@ const DailyView: React.FC<DailyViewProps> = ({
             + Add Quest
           </button>
         </div>
+
+        {/* Date Navigation */}
+        <div className="date-navigation">
+          <button
+            className="btn-secondary"
+            onClick={() => handleDateChange('prev')}
+            aria-label="Previous day"
+          >
+            ←
+          </button>
+          <h2 className="date-text">
+            {format(selectedDate, 'EEEE, MMMM d, yyyy')}
+          </h2>
+          <button
+            className="btn-secondary"
+            onClick={() => handleDateChange('next')}
+            aria-label="Next day"
+          >
+            →
+          </button>
+        </div>
+      </div>
+
+      {/* Task List */}
+      <div className="daily-tasks">
 
         {dailyTasks.length === 0 ? (
           <div className="empty-state">

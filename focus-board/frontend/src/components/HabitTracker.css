@@ -1,7 +1,20 @@
 .habit-tracker {
-  padding: 2rem;
+  padding: var(--spacing-xl);
+  max-width: 1400px;
+  margin: 0 auto;
   min-height: 100vh;
   transition: all 0.3s ease;
+}
+
+.habit-header {
+  margin-bottom: var(--spacing-xl);
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
 }
 
 .habit-tracker.light {
@@ -14,22 +27,17 @@
   color: var(--text-primary);
 }
 
-.habit-header {
-  text-align: center;
-  margin-bottom: 3rem;
-}
-
-.habit-header h2 {
-  font-size: 2.5rem;
+.habit-header h1 {
+  font-size: var(--text-display);
   font-weight: 700;
-  margin-bottom: 0.5rem;
-  color: var(--text-primary);
+  margin: 0;
+  color: var(--color-text-primary);
 }
 
 .habit-header p {
-  font-size: 1.1rem;
-  color: var(--text-secondary);
-  margin-bottom: 2rem;
+  font-size: var(--text-body-lg);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-lg);
 }
 
 .create-habit-btn {
@@ -286,14 +294,7 @@
 
 /* Habits Section */
 .habits-section {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.habits-section h3 {
-  font-size: 1.8rem;
-  margin-bottom: 2rem;
-  text-align: center;
+  margin-top: var(--spacing-lg);
 }
 
 .no-habits {
@@ -367,12 +368,29 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: var(--active-bg);
-  color: white;
+  background: var(--color-surface);
+  color: var(--color-text-primary) !important;
   border-radius: 2rem;
   font-size: 0.875rem;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(109, 123, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--color-border);
+}
+
+/* Light mode specific styling */
+.habit-tracker.light .frequency-badge {
+  background: #FFFFFF;
+  color: #000000 !important;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode specific styling */
+.habit-tracker.dark .frequency-badge {
+  background: #1E1B4B;
+  color: #FFFFFF !important;
+  border: 1px solid #1E1B4B;
+  box-shadow: 0 2px 8px rgba(30, 27, 75, 0.3);
 }
 
 .habit-card::before {
@@ -571,11 +589,17 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .habit-tracker {
-    padding: 1rem;
+    padding: var(--spacing-lg);
   }
 
-  .habit-header h2 {
-    font-size: 2rem;
+  .header-top {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    align-items: flex-start;
+  }
+
+  .habit-header h1 {
+    font-size: var(--text-h1);
   }
 
   .stats-grid {

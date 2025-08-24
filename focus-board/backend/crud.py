@@ -43,8 +43,40 @@ def delete_priority_board(db: Session, priority_board_id: int, user_id: str) -> 
         return True
     return False
 
+# Helper function to create default priority board
+def create_default_priority_board(db: Session, user_id: str) -> PriorityBoard:
+    """Create a default priority board for a user if they don't have one"""
+    default_board = PriorityBoard(
+        name="My Tasks",
+        user_id=user_id
+    )
+    db.add(default_board)
+    db.commit()
+    db.refresh(default_board)
+    return default_board
+
 # Task CRUD operations
 def create_task(db: Session, task: TaskCreate, user_id: str) -> Task:
+    # Handle priority board - create default if not provided or doesn't exist
+    if task.priority_board_id is None:
+        # Check if user has any priority boards
+        user_boards = get_priority_boards(db, user_id)
+        if user_boards:
+            # Use the first available board
+            priority_board = user_boards[0]
+            task.priority_board_id = priority_board.id
+        else:
+            # Create a default priority board
+            priority_board = create_default_priority_board(db, user_id)
+            task.priority_board_id = priority_board.id
+    else:
+        # Check if the specified priority board exists
+        priority_board = get_priority_board(db, task.priority_board_id, user_id)
+        if not priority_board:
+            # Create a default priority board
+            priority_board = create_default_priority_board(db, user_id)
+            task.priority_board_id = priority_board.id
+    
     # Get the next position for the priority board
     max_position = db.query(Task).filter(
         Task.priority_board_id == task.priority_board_id

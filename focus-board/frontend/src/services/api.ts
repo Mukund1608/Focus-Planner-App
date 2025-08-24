@@ -24,7 +24,10 @@ async function apiCall<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const url = `${API_BASE_URL}${endpoint}`;
+  console.log(`Making API call to: ${url}`, options);
+  
+  const response = await fetch(url, {
     ...options,
     credentials: 'include', // Include cookies for SuperTokens session
     headers: {
@@ -33,12 +36,17 @@ async function apiCall<T>(
     },
   });
 
+  console.log(`API response status: ${response.status}`);
+
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
+    console.error('API error:', errorData);
     throw new Error(errorData.detail || `API call failed: ${response.status}`);
   }
 
-  return response.json();
+  const data = await response.json();
+  console.log('API response data:', data);
+  return data;
 }
 
 // Priority Board API calls

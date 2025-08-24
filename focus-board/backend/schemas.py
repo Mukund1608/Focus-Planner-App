@@ -26,7 +26,7 @@ class PriorityBoardBase(BaseModel):
 
 # Create schemas
 class TaskCreate(TaskBase):
-    priority_board_id: int
+    priority_board_id: Optional[int] = None
 
 class PriorityBoardCreate(PriorityBoardBase):
     pass
