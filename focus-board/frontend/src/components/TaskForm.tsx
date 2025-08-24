@@ -103,7 +103,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
     <div className="task-form-overlay">
       <div className="task-form-modal">
         <div className="task-form-header">
-          <h2>{isEditing ? 'Edit Task' : 'Create New Task'}</h2>
+          <h2>{isEditing ? 'Edit Quest' : 'Create New Quest'}</h2>
           <button className="btn-close" onClick={onCancel}>×</button>
         </div>
 
@@ -309,7 +309,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
               Cancel
             </button>
             <button type="submit" className="btn-primary">
-              {isEditing ? 'Update Task' : 'Create Task'}
+              {isEditing ? 'Update Quest' : 'Create Quest'}
             </button>
           </div>
         </form>

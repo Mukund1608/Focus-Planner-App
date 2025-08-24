@@ -185,7 +185,6 @@ const DailyView: React.FC<DailyViewProps> = ({
   };
 
   const dailyTasks = getTasksForDate(selectedDate);
-  const todayTasks = getTasksForDate(new Date());
 
   return (
     <div className={`daily-view ${theme}`}>

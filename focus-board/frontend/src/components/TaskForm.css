@@ -149,29 +149,34 @@
 }
 
 .btn-primary {
-  background-color: #2563eb;
-  color: white;
+  background-color: var(--color-blue-accent);
+  color: #FFFFFF;
 }
 
 .btn-primary:hover {
-  background-color: #1d4ed8;
+  background-color: #5A67D8;
+  transform: translateY(-1px);
 }
 
 .btn-primary:active {
-  background-color: #1e40af;
+  background-color: #4C51BF;
+  transform: translateY(0);
 }
 
 .btn-secondary {
-  background-color: #f3f4f6;
-  color: #374151;
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  border: 2px solid var(--color-border);
 }
 
 .btn-secondary:hover {
-  background-color: #e5e7eb;
+  background-color: var(--color-border);
+  transform: translateY(-1px);
 }
 
 .btn-secondary:active {
-  background-color: #d1d5db;
+  background-color: var(--color-border);
+  transform: translateY(0);
 }
 
 /* Responsive design */

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { signOut, useSessionContext } from 'supertokens-auth-react/recipe/session';
+import { signOut } from 'supertokens-auth-react/recipe/session';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import ThemeToggle from './ThemeToggle';
@@ -15,7 +15,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme } = useTheme();
-  const session = useSessionContext();
 
   const getIsDesktop = () => (typeof window !== 'undefined' ? window.innerWidth > 1024 : true);
 
@@ -42,10 +41,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   };
 
   const navItems = [
-    { path: '/dashboard', label: 'Mission Control', icon: '🚀' },
-    { path: '/daily', label: 'Daily Quests', icon: '⚡' },
-    { path: '/weekly', label: 'Weekly Goals', icon: '🎯' },
     { path: '/priority', label: 'Priority Board', icon: '🏆' },
+    { path: '/dashboard', label: 'Mission Control', icon: '🚀' },
+    { path: '/weekly', label: 'Weekly Goals', icon: '🎯' },
+    { path: '/daily', label: 'Daily Quests', icon: '⚡' },
     { path: '/habits', label: 'Habit Tracker', icon: '🔄' },
     { path: '/focus', label: 'Focus Mode', icon: '🎧' },
     { path: '/settings', label: 'Settings', icon: '⚙️' },
@@ -86,18 +85,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           </ul>
         </nav>
         <div className="sidebar-footer">
-                          <ThemeToggle />
-          {!session.loading && session.doesSessionExist ? (
-            <button className="logout-btn" onClick={handleLogout}>
-              <span className="logout-icon">🚪</span>
-              <span className="logout-label">Logout</span>
-            </button>
-          ) : (
-            <Link to="/auth" className="login-btn">
-              <span className="login-icon">🔐</span>
-              <span className="login-label">Login</span>
-            </Link>
-          )}
+          <ThemeToggle />
+          <button className="logout-btn" onClick={handleLogout}>
+            <span className="logout-icon">🚪</span>
+            <span className="logout-label">Logout</span>
+          </button>
         </div>
       </aside>
 
@@ -118,22 +110,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
               <OfflineStatus />
               <span className="user-avatar">👤</span>
               <span className="user-name text-body-sm">
-                {!session.loading && session.doesSessionExist ? 'Explorer' : 'Preview Mode'}
+                Explorer
               </span>
             </div>
           </div>
         </header>
 
         <div className="content-area">
-          {!session.loading && !session.doesSessionExist && (
-            <div className="preview-banner">
-              <div className="preview-content">
-                <span className="preview-icon">👀</span>
-                <span className="preview-text text-body">You're in preview mode. Login to save your progress and access all features.</span>
-                <Link to="/auth" className="preview-login-btn btn-primary">Login Now</Link>
-              </div>
-            </div>
-          )}
           {children}
         </div>
       </main>

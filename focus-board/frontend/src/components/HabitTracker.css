@@ -539,32 +539,32 @@
 }
 
 .complete-btn {
-  background: #27ae60;
-  color: white;
+  background: var(--color-success);
+  color: #FFFFFF;
 }
 
 .complete-btn:hover {
-  background: #229954;
+  background: #16A34A;
   transform: translateY(-1px);
 }
 
 .edit-btn {
-  background: #f39c12;
-  color: white;
+  background: var(--color-warning);
+  color: #FFFFFF;
 }
 
 .edit-btn:hover {
-  background: #e67e22;
+  background: #D97706;
   transform: translateY(-1px);
 }
 
 .delete-btn {
-  background: #e74c3c;
-  color: white;
+  background: var(--color-danger);
+  color: #FFFFFF;
 }
 
 .delete-btn:hover {
-  background: #c0392b;
+  background: #DC2626;
   transform: translateY(-1px);
 }
 

@@ -378,28 +378,27 @@
 }
 
 .focus-btn-primary {
-  background: var(--active-bg);
-  color: white;
+  background: var(--color-blue-accent);
+  color: #FFFFFF;
   box-shadow: 0 4px 15px rgba(109, 123, 255, 0.3);
 }
 
 .focus-btn-primary:hover:not(:disabled) {
-  background: #5a6fd8;
+  background: #5A67D8;
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(109, 123, 255, 0.4);
 }
 
 .focus-btn-secondary {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border: 2px solid var(--color-border);
 }
 
 .focus-btn-secondary:hover:not(:disabled) {
-  background: var(--active-bg);
-  color: white;
+  background: var(--color-border);
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(109, 123, 255, 0.3);
+  box-shadow: 0 4px 15px rgba(109, 123, 255, 0.2);
 }
 
 

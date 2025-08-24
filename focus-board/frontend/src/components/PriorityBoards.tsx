@@ -1,33 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { PriorityBoard, Task, TaskStatus, PriorityLevel, ReminderType, RecurringPattern } from '../types/task';
-import PriorityBoardComponent from './PriorityBoard';
-import { useTheme } from '../contexts/ThemeContext';
+import { Task, TaskStatus, PriorityLevel, TaskCreate, TaskUpdate } from '../types/task';
+import TaskForm from './TaskForm';
 import './PriorityBoards.css';
 
-interface PriorityBoardsProps {
-  boards?: PriorityBoard[];
-  onBoardCreate?: (board: Partial<PriorityBoard>) => void;
-  onTaskCreate?: (task: Partial<PriorityBoard['tasks'][0]>) => void;
-  onTaskUpdate?: (task: PriorityBoard['tasks'][0]) => void;
-  onTaskDelete?: (taskId: number) => void;
-}
-
-const PriorityBoards: React.FC<PriorityBoardsProps> = ({
-  boards: propBoards,
-  onBoardCreate,
-  onTaskCreate,
-  onTaskUpdate,
-  onTaskDelete
-}) => {
-  // Internal state management when no props are provided
-  const [internalBoards, setInternalBoards] = useState<PriorityBoard[]>([]);
-  const boards = propBoards || internalBoards;
-  const [selectedBoard, setSelectedBoard] = useState<PriorityBoard | null>(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newBoard, setNewBoard] = useState({
-    name: ''
-  });
-  const { theme } = useTheme();
+const PriorityBoards: React.FC = () => {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [showTaskForm, setShowTaskForm] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [priorityFilter, setPriorityFilter] = useState<PriorityLevel | 'ALL'>('ALL');
 
   // Priority helper functions
   const getPriorityColor = (priority: PriorityLevel): string => {
@@ -75,401 +57,357 @@ const PriorityBoards: React.FC<PriorityBoardsProps> = ({
     }
   };
 
-  // Load demo data on mount if no props provided
+  // Load data
   useEffect(() => {
-    if (!propBoards) {
-      const demoBoards: PriorityBoard[] = [
-        {
-          id: 1,
-          name: 'Work Projects',
-          user_id: 'demo-user',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          tasks: [
-            {
-              id: 1,
-              title: 'Complete project proposal',
-              description: 'Write and submit the Q1 project proposal',
-              status: TaskStatus.IN_PROGRESS,
-              priority: PriorityLevel.HIGH,
-              due_date: new Date(Date.now() + 86400000).toISOString(),
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-              user_id: 'demo-user',
-              priority_board_id: 1,
-              position: 0,
-              reminder_enabled: true,
-              reminder_type: ReminderType.EMAIL,
-              reminder_sent: false,
-              is_recurring: false,
-              recurring_pattern: RecurringPattern.NONE
-            },
-            {
-              id: 2,
-              title: 'Review team feedback',
-              description: 'Go through all team member feedback on the project',
-              status: TaskStatus.PENDING,
-              priority: PriorityLevel.MEDIUM,
-              due_date: new Date(Date.now() + 172800000).toISOString(),
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-              user_id: 'demo-user',
-              priority_board_id: 1,
-              position: 1,
-              reminder_enabled: false,
-              reminder_type: ReminderType.EMAIL,
-              reminder_sent: false,
-              is_recurring: false,
-              recurring_pattern: RecurringPattern.NONE
-            }
-          ]
-        },
-        {
-          id: 2,
-          name: 'Personal Goals',
-          user_id: 'demo-user',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          tasks: [
-            {
-              id: 3,
-              title: 'Read 2 chapters of productivity book',
-              description: 'Continue reading "Getting Things Done"',
-              status: TaskStatus.PENDING,
-              priority: PriorityLevel.LOW,
-              due_date: new Date(Date.now() + 259200000).toISOString(),
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-              user_id: 'demo-user',
-              priority_board_id: 2,
-              position: 0,
-              reminder_enabled: true,
-              reminder_type: ReminderType.EMAIL,
-              reminder_sent: false,
-              is_recurring: true,
-              recurring_pattern: RecurringPattern.WEEKLY
-            }
-          ]
-        }
-      ];
-      setInternalBoards(demoBoards);
-      setSelectedBoard(demoBoards[0]);
-    }
-  }, [propBoards]);
-
-  const handleCreateBoard = (boardData: { name: string }) => {
-    const newBoardData: PriorityBoard = {
-      id: Date.now(),
-      name: boardData.name,
-      user_id: 'demo-user',
-      tasks: [],
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        // Load tasks from API
+        const response = await fetch('/api/tasks');
+        const tasksData = await response.json();
+        setTasks(tasksData);
+      } catch (err) {
+        setError('Failed to load tasks');
+        console.error('Error loading data:', err);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    if (onBoardCreate) {
-      onBoardCreate(newBoardData);
-    } else {
-      setInternalBoards(prev => [...prev, newBoardData]);
-      setSelectedBoard(newBoardData);
-    }
-    
-    setShowCreateForm(false);
-    setNewBoard({ name: '' });
-  };
+    loadData();
+  }, []);
 
-  const handleBoardSelect = (board: PriorityBoard) => {
-    setSelectedBoard(board);
-  };
-
-
-
-  const handleTaskCreate = (taskData: Partial<Task>) => {
-    if (onTaskCreate) {
-      onTaskCreate(taskData);
-    } else if (selectedBoard) {
-      const newTask: Task = {
-        id: Date.now(),
-        title: taskData.title || 'New Quest',
-        description: taskData.description || '',
-        status: taskData.status || TaskStatus.PENDING,
-        priority: taskData.priority || PriorityLevel.MEDIUM,
-        due_date: taskData.due_date || '',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        user_id: 'demo-user',
-        priority_board_id: selectedBoard.id,
-        position: selectedBoard.tasks.length,
-        reminder_enabled: taskData.reminder_enabled || false,
-        reminder_type: taskData.reminder_type || ReminderType.EMAIL,
-        reminder_sent: false,
-        is_recurring: taskData.is_recurring || false,
-        recurring_pattern: taskData.recurring_pattern || RecurringPattern.NONE
-      };
-
-      setInternalBoards(prev => prev.map(board => 
-        board.id === selectedBoard.id 
-          ? { ...board, tasks: [...board.tasks, newTask] }
-          : board
-      ));
-      
-      setSelectedBoard(prev => prev ? { ...prev, tasks: [...prev.tasks, newTask] } : null);
+  // Handle task creation/update
+  const handleTaskSubmit = async (taskData: TaskCreate | TaskUpdate) => {
+    try {
+      if (editingTask) {
+        // Update existing task
+        const response = await fetch(`/api/tasks/${editingTask.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(taskData),
+        });
+        const updatedTask = await response.json();
+        setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task));
+      } else {
+        // Create new task
+        const response = await fetch('/api/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(taskData),
+        });
+        const newTask = await response.json();
+        setTasks([...tasks, newTask]);
+      }
+      setShowTaskForm(false);
+      setEditingTask(null);
+    } catch (err) {
+      console.error('Error saving task:', err);
     }
   };
 
-  const handleTaskUpdate = (updatedTask: Task) => {
-    if (onTaskUpdate) {
-      onTaskUpdate(updatedTask);
-    } else if (selectedBoard) {
-      setInternalBoards(prev => prev.map(board => 
-        board.id === selectedBoard.id 
-          ? { ...board, tasks: board.tasks.map(task => task.id === updatedTask.id ? updatedTask : task) }
-          : board
-      ));
-      
-      setSelectedBoard(prev => prev ? {
-        ...prev, 
-        tasks: prev.tasks.map(task => task.id === updatedTask.id ? updatedTask : task)
-      } : null);
+  // Handle task status update
+  const handleTaskStatusUpdate = async (taskId: number, status: TaskStatus) => {
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      const updatedTask = await response.json();
+      setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task));
+    } catch (err) {
+      console.error('Error updating task status:', err);
     }
   };
 
-  const handleTaskDelete = (taskId: number) => {
-    if (onTaskDelete) {
-      onTaskDelete(taskId);
-    } else if (selectedBoard) {
-      setInternalBoards(prev => prev.map(board => 
-        board.id === selectedBoard.id 
-          ? { ...board, tasks: board.tasks.filter(task => task.id !== taskId) }
-          : board
-      ));
-      
-      setSelectedBoard(prev => prev ? {
-        ...prev, 
-        tasks: prev.tasks.filter(task => task.id !== taskId)
-      } : null);
-    }
+  // Filter tasks by priority
+  const filteredTasks = priorityFilter === 'ALL' 
+    ? tasks 
+    : tasks.filter(task => task.priority === priorityFilter);
+
+  // Group tasks by priority
+  const groupedTasks = {
+    [PriorityLevel.URGENT]: filteredTasks.filter(task => task.priority === PriorityLevel.URGENT),
+    [PriorityLevel.HIGH]: filteredTasks.filter(task => task.priority === PriorityLevel.HIGH),
+    [PriorityLevel.MEDIUM]: filteredTasks.filter(task => task.priority === PriorityLevel.MEDIUM),
+    [PriorityLevel.LOW]: filteredTasks.filter(task => task.priority === PriorityLevel.LOW),
   };
 
-  if (boards.length === 0) {
+  // Calculate stats
+  const calculateStats = () => {
+    return {
+      total: tasks.length,
+      urgent: tasks.filter(task => task.priority === PriorityLevel.URGENT).length,
+      high: tasks.filter(task => task.priority === PriorityLevel.HIGH).length,
+      medium: tasks.filter(task => task.priority === PriorityLevel.MEDIUM).length,
+      low: tasks.filter(task => task.priority === PriorityLevel.LOW).length,
+      completed: tasks.filter(task => task.status === TaskStatus.COMPLETED).length,
+      inProgress: tasks.filter(task => task.status === TaskStatus.IN_PROGRESS).length,
+      pending: tasks.filter(task => task.status === TaskStatus.PENDING).length,
+    };
+  };
+
+  const stats = calculateStats();
+
+  if (loading) {
     return (
-      <div className={`priority-boards ${theme}`}>
-        <div className="boards-header">
-          <h1 className="text-display text-primary">Priority Boards</h1>
+      <div className="priority-boards">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading priority board...</p>
         </div>
+      </div>
+    );
+  }
 
-        <div className="empty-state">
-          <div className="empty-illustration">
-            <div className="empty-icon">📋</div>
-          </div>
-          <h4 className="text-h3 text-primary">No boards yet</h4>
-          <p className="text-body text-secondary">
-            Create your first priority board to start organizing your quests!
-          </p>
-          <button
-            className="btn-primary"
-            onClick={() => setShowCreateForm(true)}
-          >
-            Create Your First Board
+  if (error) {
+    return (
+      <div className="priority-boards">
+        <div className="error-container">
+          <p className="error-message">{error}</p>
+          <button className="retry-btn" onClick={() => window.location.reload()}>
+            Retry
           </button>
         </div>
-
-        {/* Create Board Form Modal */}
-        {showCreateForm && (
-          <div className="modal-overlay">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h3 className="text-h3 text-primary">Create New Board</h3>
-                <button
-                  className="btn-tertiary"
-                  onClick={() => setShowCreateForm(false)}
-                  aria-label="Close modal"
-                >
-                  ×
-                </button>
-              </div>
-              <form
-                className="board-form"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleCreateBoard(newBoard);
-                }}
-              >
-                <div className="form-group">
-                  <label htmlFor="board-name" className="form-label">Board Name</label>
-                  <input
-                    id="board-name"
-                    type="text"
-                    className="form-input"
-                    value={newBoard.name}
-                    onChange={(e) => setNewBoard(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="e.g., Work Projects"
-                    required
-                  />
-                </div>
-
-                <div className="form-actions">
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => setShowCreateForm(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn-primary"
-                    disabled={!newBoard.name.trim()}
-                  >
-                    Create Board
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
       </div>
     );
   }
 
   return (
-    <div className={`priority-boards ${theme}`}>
-      {!selectedBoard ? (
-        <>
-          <div className="boards-header">
-            <h1 className="text-display text-primary">Priority Boards</h1>
-            <button
-              className="btn-primary"
-              onClick={() => setShowCreateForm(true)}
-            >
-              + Create Board
-            </button>
-          </div>
+    <div className="priority-boards">
+      {/* Header */}
+      <div className="boards-header">
+        <div>
+          <h2 className="text-h1">Priority Board</h2>
+          <p className="text-body-lg">Organize tasks by priority level</p>
+        </div>
+        <button
+          className="btn-primary"
+          onClick={() => {
+            setEditingTask(null);
+            setShowTaskForm(true);
+          }}
+        >
+          + Add Task
+        </button>
+      </div>
 
-          <div className="boards-grid">
-            {boards.map(board => (
-              <div
-                key={board.id}
-                className="board-card"
-                onClick={() => handleBoardSelect(board)}
-              >
-                <div className="board-card-header">
-                  <h3 className="text-h3 text-primary">{board.name}</h3>
-                  <span className="board-task-count">{board.tasks.length} quests</span>
+      {/* Stats Cards */}
+      <div className="weekly-stats">
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-icon">📋</div>
+            <div className="stat-content">
+              <div className="stat-number">{stats.total}</div>
+              <div className="stat-label">Total Tasks</div>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-icon">👑</div>
+            <div className="stat-content">
+              <div className="stat-number">{stats.urgent}</div>
+              <div className="stat-label">Boss Tasks</div>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-icon">🏆</div>
+            <div className="stat-content">
+              <div className="stat-number">{stats.high}</div>
+              <div className="stat-label">Milestones</div>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-icon">✅</div>
+            <div className="stat-content">
+              <div className="stat-number">{stats.completed}</div>
+              <div className="stat-label">Completed</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Priority Filter */}
+      <div className="priority-filter">
+        <h3 className="text-h2">Filter by Priority</h3>
+        <div className="priority-buttons">
+          <button
+            className={`priority-btn ${priorityFilter === 'ALL' ? 'active' : ''}`}
+            onClick={() => setPriorityFilter('ALL')}
+          >
+            All Tasks ({stats.total})
+          </button>
+          <button
+            className={`priority-btn ${priorityFilter === PriorityLevel.URGENT ? 'active' : ''}`}
+            onClick={() => setPriorityFilter(PriorityLevel.URGENT)}
+          >
+            {getPriorityIcon(PriorityLevel.URGENT)} Boss Tasks ({stats.urgent})
+          </button>
+          <button
+            className={`priority-btn ${priorityFilter === PriorityLevel.HIGH ? 'active' : ''}`}
+            onClick={() => setPriorityFilter(PriorityLevel.HIGH)}
+          >
+            {getPriorityIcon(PriorityLevel.HIGH)} Milestones ({stats.high})
+          </button>
+          <button
+            className={`priority-btn ${priorityFilter === PriorityLevel.MEDIUM ? 'active' : ''}`}
+            onClick={() => setPriorityFilter(PriorityLevel.MEDIUM)}
+          >
+            {getPriorityIcon(PriorityLevel.MEDIUM)} Weekly Streaks ({stats.medium})
+          </button>
+          <button
+            className={`priority-btn ${priorityFilter === PriorityLevel.LOW ? 'active' : ''}`}
+            onClick={() => setPriorityFilter(PriorityLevel.LOW)}
+          >
+            {getPriorityIcon(PriorityLevel.LOW)} Daily ({stats.low})
+          </button>
+        </div>
+      </div>
+
+      {/* Priority Sections */}
+      <div className="priority-sections">
+        {priorityFilter === 'ALL' ? (
+          // Show all priorities grouped
+          Object.entries(groupedTasks).map(([priority, priorityTasks]) => (
+            priorityTasks.length > 0 && (
+              <div key={priority} className="priority-section">
+                <div className="section-header">
+                  <h3 className="text-h2">
+                    {getPriorityIcon(priority as PriorityLevel)} {getPriorityLabel(priority as PriorityLevel)}
+                  </h3>
+                  <div className="task-count">{priorityTasks.length} tasks</div>
                 </div>
-                
-                <div className="board-card-content">
-                  {board.tasks.length > 0 ? (
-                    <div className="board-tasks-preview">
-                      {board.tasks.slice(0, 3).map(task => (
-                        <div key={task.id} className="task-preview-item">
-                          <div 
-                            className="task-preview-priority-stripe"
-                            style={{ backgroundColor: getPriorityColor(task.priority) }}
-                          />
-                          <span className="task-title">{task.title}</span>
-                          <span className="task-preview-priority-badge">
-                            {getPriorityIcon(task.priority)} {getPriorityLabel(task.priority)}
-                          </span>
-                        </div>
-                      ))}
-                      {board.tasks.length > 3 && (
-                        <div className="more-tasks">
-                          +{board.tasks.length - 3} more
-                        </div>
-                      )}
+                <div className="tasks-grid">
+                  {priorityTasks.map((task) => (
+                    <div key={task.id} className="task-card">
+                      <div className="task-header">
+                        <div 
+                          className="priority-indicator"
+                          style={{ backgroundColor: getPriorityColor(task.priority) }}
+                        ></div>
+                        <h4>{task.title}</h4>
+                      </div>
+                      <p className="task-description">{task.description}</p>
+                      <div className="task-meta">
+                        <span className="task-due-date">
+                          Due: {new Date(task.due_date).toLocaleDateString()}
+                        </span>
+                        <span className={`task-status ${task.status}`}>
+                          {task.status}
+                        </span>
+                      </div>
+                      <div className="task-actions">
+                        <button
+                          className="btn-secondary"
+                          onClick={() => {
+                            setEditingTask(task);
+                            setShowTaskForm(true);
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn-primary"
+                          onClick={() => handleTaskStatusUpdate(task.id, TaskStatus.COMPLETED)}
+                          disabled={task.status === TaskStatus.COMPLETED}
+                        >
+                          Complete
+                        </button>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="board-empty-state">
-                      <span className="empty-text">No quests yet</span>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="board-card-footer">
-                  <span className="board-created">
-                    Created: {new Date(board.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                  </span>
+                  ))}
                 </div>
               </div>
-            ))}
+            )
+          ))
+        ) : (
+          // Show filtered tasks
+          <div className="priority-section">
+            <div className="section-header">
+              <h3 className="text-h2">
+                {getPriorityIcon(priorityFilter)} {getPriorityLabel(priorityFilter)}
+              </h3>
+              <div className="task-count">{filteredTasks.length} tasks</div>
+            </div>
+            <div className="tasks-grid">
+              {filteredTasks.map((task) => (
+                <div key={task.id} className="task-card">
+                  <div className="task-header">
+                    <div 
+                      className="priority-indicator"
+                      style={{ backgroundColor: getPriorityColor(task.priority) }}
+                    ></div>
+                    <h4>{task.title}</h4>
+                  </div>
+                  <p className="task-description">{task.description}</p>
+                  <div className="task-meta">
+                    <span className="task-due-date">
+                      Due: {new Date(task.due_date).toLocaleDateString()}
+                    </span>
+                    <span className={`task-status ${task.status}`}>
+                      {task.status}
+                    </span>
+                  </div>
+                  <div className="task-actions">
+                    <button
+                      className="btn-secondary"
+                      onClick={() => {
+                        setEditingTask(task);
+                        setShowTaskForm(true);
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="btn-primary"
+                      onClick={() => handleTaskStatusUpdate(task.id, TaskStatus.COMPLETED)}
+                      disabled={task.status === TaskStatus.COMPLETED}
+                    >
+                      Complete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </>
-      ) : (
-        <div className="board-detail-view">
-          <div className="board-detail-header">
-            <button
-              className="btn-back"
-              onClick={() => setSelectedBoard(null)}
-              aria-label="Back to boards"
-            >
-              ← Back to Boards
-            </button>
-            <h1 className="text-display text-primary">{selectedBoard.name}</h1>
+        )}
+      </div>
+
+      {/* Empty State */}
+      {filteredTasks.length === 0 && (
+        <div className="empty-state">
+          <div className="empty-illustration">
+            <div className="empty-icon">🎯</div>
           </div>
-          
-          <PriorityBoardComponent
-            priorityBoard={selectedBoard}
-            onTaskCreate={handleTaskCreate}
-            onTaskUpdate={handleTaskUpdate}
-            onTaskDelete={handleTaskDelete}
-          />
+          <h4>No tasks found</h4>
+          <p>
+            {priorityFilter === 'ALL' 
+              ? "You don't have any tasks yet. Create your first task to get started!"
+              : `No ${getPriorityLabel(priorityFilter).toLowerCase()} tasks found.`
+            }
+          </p>
+          <button
+            className="btn-primary"
+            onClick={() => {
+              setEditingTask(null);
+              setShowTaskForm(true);
+            }}
+          >
+            Create Your First Task
+          </button>
         </div>
       )}
 
-      {/* Create Board Form Modal */}
-      {showCreateForm && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3 className="text-h3 text-primary">Create New Board</h3>
-              <button
-                className="btn-tertiary"
-                onClick={() => setShowCreateForm(false)}
-                aria-label="Close modal"
-              >
-                ×
-              </button>
-            </div>
-            <form
-              className="board-form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleCreateBoard(newBoard);
-              }}
-            >
-              <div className="form-group">
-                <label htmlFor="board-name" className="form-label">Board Name</label>
-                <input
-                  id="board-name"
-                  type="text"
-                  className="form-input"
-                  value={newBoard.name}
-                  onChange={(e) => setNewBoard(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="e.g., Work Projects"
-                  required
-                />
-              </div>
-
-              <div className="form-actions">
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => setShowCreateForm(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  disabled={!newBoard.name.trim()}
-                >
-                  Create Board
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {/* Task Form Modal */}
+      {showTaskForm && (
+        <TaskForm
+          task={editingTask}
+          onSubmit={handleTaskSubmit}
+          onClose={() => {
+            setShowTaskForm(false);
+            setEditingTask(null);
+          }}
+        />
       )}
     </div>
   );
