@@ -615,3 +615,170 @@ def get_habit_stats(db: Session, user_id: str):
         "average_streak": round(average_streak, 1),
         "longest_current_streak": longest_current_streak
     }
+
+# Exam Mode CRUD Operations
+from models import ExamInputs, ExamSchedule, ExamScheduleDay, ExamTask, NotificationPreferences
+from exam_scheduler import ExamScheduler
+from datetime import datetime, timedelta
+import uuid
+
+def create_exam_schedule(db: Session, user_id: str, schedule_data: dict) -> ExamSchedule:
+    """
+    Create a new exam schedule and archive any existing active schedule
+    """
+    # Archive existing active schedule
+    existing_schedule = db.query(ExamSchedule).filter(
+        and_(ExamSchedule.user_id == user_id, ExamSchedule.status == "active")
+    ).first()
+    
+    if existing_schedule:
+        existing_schedule.status = "archived"
+        db.commit()
+    
+    # Create new schedule
+    schedule = ExamSchedule(
+        id=schedule_data['scheduleId'],
+        user_id=user_id,
+        version=schedule_data['version'],
+        status="active",
+        from_date=datetime.fromisoformat(schedule_data['fromDate'].replace('Z', '+00:00')),
+        to_date=datetime.fromisoformat(schedule_data['toDate'].replace('Z', '+00:00')),
+        params=schedule_data['params']
+    )
+    
+    db.add(schedule)
+    db.commit()
+    db.refresh(schedule)
+    
+    # Create schedule days and tasks
+    for day_data in schedule_data['days']:
+        schedule_day = ExamScheduleDay(
+            id=str(uuid.uuid4()),
+            schedule_id=schedule.id,
+            day=datetime.fromisoformat(day_data['day'].replace('Z', '+00:00')),
+            total_planned_minutes=day_data['totalPlannedMinutes']
+        )
+        
+        db.add(schedule_day)
+        db.commit()
+        db.refresh(schedule_day)
+        
+        # Create tasks for this day
+        for task_data in day_data['tasks']:
+            task = ExamTask(
+                id=task_data['id'],
+                schedule_day_id=schedule_day.id,
+                subject_id=task_data['subjectId'],
+                subject_name=task_data['subjectName'],
+                difficulty=task_data['difficulty'],
+                planned_minutes=task_data['plannedMinutes'],
+                pomodoro_blocks=task_data['pomodoroBlocks'],
+                completed_at=None,  # New tasks are not completed
+                notes=task_data.get('notes')
+            )
+            
+            db.add(task)
+        
+        db.commit()
+    
+    return schedule
+
+def get_active_exam_schedule(db: Session, user_id: str) -> ExamSchedule:
+    """
+    Get the active exam schedule for a user
+    """
+    return db.query(ExamSchedule).filter(
+        and_(ExamSchedule.user_id == user_id, ExamSchedule.status == "active")
+    ).first()
+
+def get_exam_schedule_by_day(db: Session, user_id: str, day: str) -> List[ExamTask]:
+    """
+    Get exam tasks for a specific day
+    """
+    target_date = datetime.fromisoformat(day.replace('Z', '+00:00')).date()
+    
+    return db.query(ExamTask).join(ExamScheduleDay).join(ExamSchedule).filter(
+        and_(
+            ExamSchedule.user_id == user_id,
+            ExamSchedule.status == "active",
+            func.date(ExamScheduleDay.day) == target_date
+        )
+    ).all()
+
+def update_exam_task_completion(db: Session, user_id: str, task_id: str, completed: bool) -> ExamTask:
+    """
+    Update task completion status
+    """
+    task = db.query(ExamTask).join(ExamScheduleDay).join(ExamSchedule).filter(
+        and_(
+            ExamTask.id == task_id,
+            ExamSchedule.user_id == user_id,
+            ExamSchedule.status == "active"
+        )
+    ).first()
+    
+    if not task:
+        raise ValueError("Task not found")
+    
+    if completed:
+        task.completed_at = datetime.utcnow()
+    else:
+        task.completed_at = None
+    
+    db.commit()
+    db.refresh(task)
+    return task
+
+def get_notification_preferences(db: Session, user_id: str) -> NotificationPreferences:
+    """
+    Get notification preferences for a user, creating defaults if not exists
+    """
+    prefs = db.query(NotificationPreferences).filter(
+        NotificationPreferences.user_id == user_id
+    ).first()
+    
+    if not prefs:
+        # Create default preferences
+        prefs = NotificationPreferences(
+            user_id=user_id,
+            am_enabled=True,
+            am_time="09:00",
+            pm_enabled=True,
+            pm_time="20:00",
+            tz="Asia/Kolkata"
+        )
+        db.add(prefs)
+        db.commit()
+        db.refresh(prefs)
+    
+    return prefs
+
+def update_notification_preferences(db: Session, user_id: str, prefs_data: dict) -> NotificationPreferences:
+    """
+    Update notification preferences
+    """
+    prefs = get_notification_preferences(db, user_id)
+    
+    if 'amEnabled' in prefs_data:
+        prefs.am_enabled = prefs_data['amEnabled']
+    if 'amTime' in prefs_data:
+        prefs.am_time = prefs_data['amTime']
+    if 'pmEnabled' in prefs_data:
+        prefs.pm_enabled = prefs_data['pmEnabled']
+    if 'pmTime' in prefs_data:
+        prefs.pm_time = prefs_data['pmTime']
+    if 'tz' in prefs_data:
+        prefs.tz = prefs_data['tz']
+    
+    prefs.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(prefs)
+    return prefs
+
+def check_schedule_idempotency(db: Session, user_id: str, input_hash: str) -> ExamSchedule:
+    """
+    Check if a schedule with the same inputs already exists
+    """
+    # This would require storing input hashes in the schedule params
+    # For now, we'll regenerate each time
+    return None

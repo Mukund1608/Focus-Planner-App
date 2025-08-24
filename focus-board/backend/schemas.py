@@ -165,3 +165,80 @@ class HabitStats(BaseModel):
     total_completions_this_month: int
     average_streak: float
     longest_current_streak: int
+
+# Exam Mode Schemas
+from models import ExamDifficulty
+
+class ExamSubjectBase(BaseModel):
+    id: str = Field(..., min_length=1, max_length=50)
+    name: str = Field(..., min_length=1, max_length=100)
+    examDate: str = Field(..., description="ISO date string")
+    difficulty: ExamDifficulty = ExamDifficulty.MEDIUM
+    weightOverride: Optional[float] = Field(None, ge=0.5, le=3.0)
+
+class ExamScheduleGenerateRequest(BaseModel):
+    subjects: List[ExamSubjectBase] = Field(..., min_items=1)
+    dailyHours: float = Field(..., ge=0.5, le=16.0)
+    startDate: Optional[str] = Field(None, description="ISO date string")
+    reserveRevision: Optional[bool] = Field(True, description="Whether to reserve revision days")
+    blockMinutes: Optional[int] = Field(50, ge=15, le=120)
+    shortBreakMinutes: Optional[int] = Field(10, ge=5, le=30)
+    longBreakMinutes: Optional[int] = Field(20, ge=10, le=60)
+    longBreakEveryNBlocks: Optional[int] = Field(3, ge=1, le=10)
+
+class ExamTaskResponse(BaseModel):
+    id: str
+    subjectId: str
+    subjectName: str
+    difficulty: ExamDifficulty
+    plannedMinutes: int
+    pomodoroBlocks: int
+    completedAt: Optional[datetime] = None
+    notes: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+
+class ExamScheduleDayResponse(BaseModel):
+    day: str  # ISO date string
+    totalPlannedMinutes: int
+    tasks: List[ExamTaskResponse]
+    
+    class Config:
+        from_attributes = True
+
+class ExamScheduleResponse(BaseModel):
+    scheduleId: str
+    version: int
+    fromDate: str  # ISO date string
+    toDate: str  # ISO date string
+    days: List[ExamScheduleDayResponse]
+    
+    class Config:
+        from_attributes = True
+
+class ExamScheduleGetResponse(BaseModel):
+    day: Optional[str] = None  # ISO date string
+    tasks: Optional[List[ExamTaskResponse]] = None
+    schedule: Optional[ExamScheduleResponse] = None
+
+class ExamTaskCompletionRequest(BaseModel):
+    taskId: str
+    completed: bool
+
+class NotificationPreferencesRequest(BaseModel):
+    amEnabled: Optional[bool] = None
+    amTime: Optional[str] = Field(None, pattern=r"^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")
+    pmEnabled: Optional[bool] = None
+    pmTime: Optional[str] = Field(None, pattern=r"^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$")
+    tz: Optional[str] = None
+
+class NotificationPreferencesResponse(BaseModel):
+    amEnabled: bool
+    amTime: str
+    pmEnabled: bool
+    pmTime: str
+    tz: str
+    
+    class Config:
+        from_attributes = True

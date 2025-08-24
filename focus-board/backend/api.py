@@ -452,3 +452,247 @@ async def get_habit_stats_endpoint(
 ):
     """Get comprehensive habit statistics for the current user"""
     return get_habit_stats(db, current_user)
+
+# Exam Mode API Endpoints
+from schemas import (
+    ExamScheduleGenerateRequest, ExamScheduleResponse, ExamScheduleGetResponse,
+    ExamTaskCompletionRequest, NotificationPreferencesRequest, NotificationPreferencesResponse
+)
+from crud import (
+    create_exam_schedule, get_active_exam_schedule, get_exam_schedule_by_day,
+    update_exam_task_completion, get_notification_preferences, update_notification_preferences
+)
+from exam_scheduler import ExamScheduler
+
+@router.post("/schedule/generate", response_model=ExamScheduleResponse)
+async def generate_exam_schedule_endpoint(
+    request: ExamScheduleGenerateRequest,
+    current_user: str = Depends(get_current_user),
+    db: DBSession = Depends(get_db)
+):
+    """Generate or regenerate an exam schedule"""
+    
+    # Initialize scheduler with config
+    config = {
+        'blockMinutes': request.blockMinutes or 50,
+        'shortBreakMinutes': request.shortBreakMinutes or 10,
+        'longBreakMinutes': request.longBreakMinutes or 20,
+        'longBreakEveryNBlocks': request.longBreakEveryNBlocks or 3,
+        'reserveRevision': request.reserveRevision if request.reserveRevision is not None else True
+    }
+    scheduler = ExamScheduler(config)
+    
+    # Validate inputs
+    # Convert Pydantic models to dict format for validation
+    subjects_data = []
+    for subject in request.subjects:
+        subjects_data.append({
+            'id': subject.id,
+            'name': subject.name,
+            'examDate': subject.examDate,
+            'difficulty': subject.difficulty.value.upper(),
+            'weightOverride': subject.weightOverride if subject.weightOverride is not None else 1.0
+        })
+    
+    is_valid, errors = scheduler.validate_inputs(subjects_data, request.dailyHours)
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"message": "Invalid inputs", "errors": errors}
+        )
+    
+    # Generate schedule
+    try:
+        # Convert Pydantic models to dict format for the scheduler
+        subjects_data = []
+        for subject in request.subjects:
+                    subjects_data.append({
+            'id': subject.id,
+            'name': subject.name,
+            'examDate': subject.examDate,
+            'difficulty': subject.difficulty.value.upper(),
+            'weightOverride': subject.weightOverride if subject.weightOverride is not None else 1.0
+        })
+        
+        schedule_data = scheduler.generate_schedule(
+            subjects=subjects_data,
+            daily_hours=request.dailyHours,
+            start_date=request.startDate
+        )
+        
+        # Store in database
+        schedule = create_exam_schedule(db, current_user, schedule_data)
+        
+        # Return response
+        return {
+            "scheduleId": schedule.id,
+            "version": schedule.version,
+            "fromDate": schedule.from_date.isoformat(),
+            "toDate": schedule.to_date.isoformat(),
+            "days": schedule_data['days']
+        }
+        
+    except Exception as e:
+        import traceback
+        print(f"Error generating schedule: {str(e)}")
+        print(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate schedule: {str(e)}"
+        )
+
+@router.get("/schedule/get", response_model=ExamScheduleGetResponse)
+async def get_exam_schedule_endpoint(
+    day: str = None,  # Optional: YYYY-MM-DD format
+    current_user: str = Depends(get_current_user),
+    db: DBSession = Depends(get_db)
+):
+    """Get active exam schedule, optionally filtered by day"""
+    
+    if day:
+        # Get tasks for specific day
+        try:
+            tasks = get_exam_schedule_by_day(db, current_user, day)
+            return {
+                "day": day,
+                "tasks": [
+                    {
+                        "id": task.id,
+                        "subjectId": task.subject_id,
+                        "subjectName": task.subject_name,
+                        "difficulty": task.difficulty.value,
+                        "plannedMinutes": task.planned_minutes,
+                        "pomodoroBlocks": task.pomodoro_blocks,
+                        "completedAt": task.completed_at.isoformat() if task.completed_at else None,
+                        "notes": task.notes
+                    }
+                    for task in tasks
+                ]
+            }
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid date format. Use YYYY-MM-DD"
+            )
+    else:
+        # Get full schedule
+        schedule = get_active_exam_schedule(db, current_user)
+        if not schedule:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No active exam schedule found"
+            )
+        
+        # Convert to response format
+        days = []
+        for schedule_day in schedule.days:
+            day_tasks = [
+                {
+                    "id": task.id,
+                    "subjectId": task.subject_id,
+                    "subjectName": task.subject_name,
+                    "difficulty": task.difficulty.value,
+                    "plannedMinutes": task.planned_minutes,
+                    "pomodoroBlocks": task.pomodoro_blocks,
+                    "completedAt": task.completed_at.isoformat() if task.completed_at else None,
+                    "notes": task.notes
+                }
+                for task in schedule_day.tasks
+            ]
+            
+            days.append({
+                "day": schedule_day.day.isoformat(),
+                "totalPlannedMinutes": schedule_day.total_planned_minutes,
+                "tasks": day_tasks
+            })
+        
+        return {
+            "schedule": {
+                "scheduleId": schedule.id,
+                "version": schedule.version,
+                "fromDate": schedule.from_date.isoformat(),
+                "toDate": schedule.to_date.isoformat(),
+                "days": days
+            }
+        }
+
+@router.post("/schedule/complete-task")
+async def complete_exam_task_endpoint(
+    request: ExamTaskCompletionRequest,
+    current_user: str = Depends(get_current_user),
+    db: DBSession = Depends(get_db)
+):
+    """Toggle completion status for an exam task"""
+    
+    try:
+        task = update_exam_task_completion(db, current_user, request.taskId, request.completed)
+        return {
+            "message": "Task updated successfully",
+            "taskId": task.id,
+            "completed": task.completed_at is not None
+        }
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found"
+        )
+
+@router.delete("/schedule/delete")
+async def delete_exam_schedule_endpoint(
+    current_user: str = Depends(get_current_user),
+    db: DBSession = Depends(get_db)
+):
+    """Delete the active exam schedule for the current user"""
+    
+    try:
+        # Get active schedule
+        schedule = get_active_exam_schedule(db, current_user)
+        if not schedule:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No active exam schedule found"
+            )
+        
+        # Delete the schedule (this will cascade to days and tasks)
+        db.delete(schedule)
+        db.commit()
+        
+        return {"message": "Exam schedule deleted successfully"}
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete schedule: {str(e)}"
+        )
+
+@router.get("/schedule/preferences", response_model=NotificationPreferencesResponse)
+async def get_notification_preferences_endpoint(
+    current_user: str = Depends(get_current_user),
+    db: DBSession = Depends(get_db)
+):
+    """Get notification preferences for the current user"""
+    prefs = get_notification_preferences(db, current_user)
+    return {
+        "amEnabled": prefs.am_enabled,
+        "amTime": prefs.am_time,
+        "pmEnabled": prefs.pm_enabled,
+        "pmTime": prefs.pm_time,
+        "tz": prefs.tz
+    }
+
+@router.put("/schedule/preferences", response_model=NotificationPreferencesResponse)
+async def update_notification_preferences_endpoint(
+    request: NotificationPreferencesRequest,
+    current_user: str = Depends(get_current_user),
+    db: DBSession = Depends(get_db)
+):
+    """Update notification preferences for the current user"""
+    prefs = update_notification_preferences(db, current_user, request.dict(exclude_unset=True))
+    return {
+        "amEnabled": prefs.am_enabled,
+        "amTime": prefs.am_time,
+        "pmEnabled": prefs.pm_enabled,
+        "pmTime": prefs.pm_time,
+        "tz": prefs.tz
+    }

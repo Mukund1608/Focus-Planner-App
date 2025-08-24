@@ -8,7 +8,7 @@ import './TaskCard.css';
 const PriorityBoards: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [showTaskForm, setShowTaskForm] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editingTask, setEditingTask] = useState<Task | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<PriorityLevel | 'ALL'>('ALL');
@@ -92,7 +92,7 @@ const PriorityBoards: React.FC = () => {
         setTasks([...tasks, newTask]);
       }
       setShowTaskForm(false);
-      setEditingTask(null);
+      setEditingTask(undefined);
     } catch (err) {
       console.error('Error saving task:', err);
     }
@@ -184,7 +184,7 @@ const PriorityBoards: React.FC = () => {
         <button
           className="btn-primary"
           onClick={() => {
-            setEditingTask(null);
+            setEditingTask(undefined);
             setShowTaskForm(true);
           }}
         >
@@ -263,7 +263,7 @@ const PriorityBoards: React.FC = () => {
                         <div className="quest-meta">
                           <div className="quest-tags">
                             <span className="quest-due-date">
-                              📅 Due: {new Date(task.due_date).toLocaleDateString()}
+                              📅 Due: {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No due date'}
                             </span>
                             <span className={`quest-status ${task.status}`}>
                               {task.status === TaskStatus.COMPLETED ? '✅' : task.status === TaskStatus.IN_PROGRESS ? '🔄' : '⏳'} {task.status}
@@ -333,7 +333,7 @@ const PriorityBoards: React.FC = () => {
                     <div className="quest-meta">
                       <div className="quest-tags">
                         <span className="quest-due-date">
-                          📅 Due: {new Date(task.due_date).toLocaleDateString()}
+                          📅 Due: {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No due date'}
                         </span>
                         <span className={`quest-status ${task.status}`}>
                           {task.status === TaskStatus.COMPLETED ? '✅' : task.status === TaskStatus.IN_PROGRESS ? '🔄' : '⏳'} {task.status}
@@ -388,7 +388,7 @@ const PriorityBoards: React.FC = () => {
           onSubmit={handleTaskSubmit}
           onCancel={() => {
             setShowTaskForm(false);
-            setEditingTask(null);
+            setEditingTask(undefined);
           }}
           isEditing={!!editingTask}
         />

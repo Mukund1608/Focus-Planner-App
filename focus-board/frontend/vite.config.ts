@@ -7,5 +7,12 @@ export default defineConfig({
     port: 3001,
     host: true, // Allow external connections
     strictPort: true, // Fail if port is already in use
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
   }
 })

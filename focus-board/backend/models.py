@@ -130,3 +130,80 @@ class HabitCompletion(Base):
     
     # Relationships
     habit = relationship("Habit", back_populates="completions")
+
+# Exam Mode Models
+class ExamDifficulty(enum.Enum):
+    EASY = "EASY"
+    MEDIUM = "MEDIUM"
+    HARD = "HARD"
+
+class ExamInputs(Base):
+    __tablename__ = "exam_inputs"
+    
+    id = Column(String, primary_key=True, index=True)  # UUID
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    subjects = Column(JSON, nullable=False)  # Array of subject objects
+    daily_hours = Column(Integer, nullable=False)  # Stored as minutes
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    user = relationship("User", backref="exam_inputs")
+
+class ExamSchedule(Base):
+    __tablename__ = "schedules"
+    
+    id = Column(String, primary_key=True, index=True)  # UUID
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    version = Column(Integer, default=1)
+    status = Column(String, default="active")  # active, archived
+    from_date = Column(DateTime, nullable=False)
+    to_date = Column(DateTime, nullable=False)
+    params = Column(JSON, nullable=False)  # Snapshot of inputs + algorithm config
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = relationship("User", backref="exam_schedules")
+    days = relationship("ExamScheduleDay", back_populates="schedule", cascade="all, delete-orphan")
+
+class ExamScheduleDay(Base):
+    __tablename__ = "schedule_days"
+    
+    id = Column(String, primary_key=True, index=True)  # UUID
+    schedule_id = Column(String, ForeignKey("schedules.id"), nullable=False)
+    day = Column(DateTime, nullable=False)
+    total_planned_minutes = Column(Integer, nullable=False)
+    
+    # Relationships
+    schedule = relationship("ExamSchedule", back_populates="days")
+    tasks = relationship("ExamTask", back_populates="schedule_day", cascade="all, delete-orphan")
+
+class ExamTask(Base):
+    __tablename__ = "exam_tasks"
+    
+    id = Column(String, primary_key=True, index=True)  # UUID
+    schedule_day_id = Column(String, ForeignKey("schedule_days.id"), nullable=False)
+    subject_id = Column(String, nullable=False)
+    subject_name = Column(String, nullable=False)
+    difficulty = Column(Enum(ExamDifficulty), nullable=False)
+    planned_minutes = Column(Integer, nullable=False)
+    pomodoro_blocks = Column(Integer, nullable=False)
+    completed_at = Column(DateTime, nullable=True)
+    notes = Column(Text, nullable=True)
+    
+    # Relationships
+    schedule_day = relationship("ExamScheduleDay", back_populates="tasks")
+
+class NotificationPreferences(Base):
+    __tablename__ = "notification_prefs"
+    
+    user_id = Column(String, ForeignKey("users.id"), primary_key=True)
+    am_enabled = Column(Boolean, default=True)
+    am_time = Column(String, default="09:00")  # HH:mm format
+    pm_enabled = Column(Boolean, default=True)
+    pm_time = Column(String, default="20:00")  # HH:mm format
+    tz = Column(String, default="Asia/Kolkata")
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    user = relationship("User", backref="notification_preferences")

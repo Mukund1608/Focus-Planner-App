@@ -196,3 +196,52 @@ export const habitAPI = {
   getStats: (): Promise<HabitStats> =>
     apiCall<HabitStats>('/habits/stats'),
 };
+
+// Exam Mode API calls
+import {
+  ExamSchedule,
+  ExamScheduleGenerateRequest,
+  ExamScheduleGetResponse,
+  ExamTaskCompletionRequest,
+  NotificationPreferences,
+  ExamPreferencesRequest
+} from '../types/task';
+
+export const examAPI = {
+  // Generate or regenerate exam schedule
+  generateSchedule: (data: ExamScheduleGenerateRequest): Promise<ExamSchedule> =>
+    apiCall<ExamSchedule>('/schedule/generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  // Get active exam schedule
+  getSchedule: (day?: string): Promise<ExamScheduleGetResponse> => {
+    const endpoint = day ? `/schedule/get?day=${day}` : '/schedule/get';
+    return apiCall<ExamScheduleGetResponse>(endpoint);
+  },
+
+  // Complete/uncomplete a task
+  completeTask: (data: ExamTaskCompletionRequest): Promise<{ message: string; taskId: string; completed: boolean }> =>
+    apiCall<{ message: string; taskId: string; completed: boolean }>('/schedule/complete-task', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  // Delete exam schedule
+  deleteSchedule: (): Promise<{ message: string }> =>
+    apiCall<{ message: string }>('/schedule/delete', {
+      method: 'DELETE',
+    }),
+
+  // Get notification preferences
+  getNotificationPreferences: (): Promise<NotificationPreferences> =>
+    apiCall<NotificationPreferences>('/schedule/preferences'),
+
+  // Update notification preferences
+  updateNotificationPreferences: (data: ExamPreferencesRequest): Promise<NotificationPreferences> =>
+    apiCall<NotificationPreferences>('/schedule/preferences', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+};

@@ -48,6 +48,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     { path: '/weekly', label: 'Weekly Goals', icon: '🎯' },
     { path: '/habits', label: 'Habit Tracker', icon: '🔄' },
     { path: '/focus', label: 'Focus Mode', icon: '🎧' },
+    { path: '/exam', label: 'Exam Mode', icon: '📚' },
     { path: '/settings', label: 'Settings', icon: '⚙️' },
   ];
 
