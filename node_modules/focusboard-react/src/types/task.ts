@@ -212,3 +212,101 @@ export interface HabitStats {
   average_streak: number;
   longest_current_streak: number;
 }
+
+// Exam Mode Types
+export enum ExamDifficulty {
+  EASY = "EASY",
+  MEDIUM = "MEDIUM",
+  HARD = "HARD"
+}
+
+export interface ExamSubject {
+  id: string;
+  name: string;
+  examDate: string; // ISO date string
+  difficulty: ExamDifficulty;
+  weightOverride?: number; // Optional weight multiplier (0.5-3.0)
+}
+
+export interface ExamInputs {
+  subjects: ExamSubject[];
+  dailyHours: number;
+  startDate?: string; // ISO date string, defaults to today
+  reserveRevision?: boolean; // Whether to reserve revision days
+  blockMinutes?: number;
+  shortBreakMinutes?: number;
+  longBreakMinutes?: number;
+  longBreakEveryNBlocks?: number;
+}
+
+export interface ExamTask {
+  id: string;
+  subjectId: string;
+  subjectName: string;
+  difficulty: ExamDifficulty;
+  plannedMinutes: number;
+  pomodoroBlocks: number;
+  completedAt?: string; // ISO timestamp
+  notes?: string;
+}
+
+export interface ExamScheduleDay {
+  day: string; // ISO date string
+  totalPlannedMinutes: number;
+  tasks: ExamTask[];
+}
+
+export interface ExamSchedule {
+  scheduleId: string;
+  version: number;
+  fromDate: string;
+  toDate: string;
+  days: ExamScheduleDay[];
+  params: ExamInputs; // Snapshot of inputs used to generate
+}
+
+export interface NotificationPreferences {
+  amEnabled: boolean;
+  amTime: string; // HH:mm format
+  pmEnabled: boolean;
+  pmTime: string; // HH:mm format
+  tz: string; // Timezone string
+}
+
+export interface ExamScheduleResponse {
+  scheduleId: string;
+  version: number;
+  fromDate: string;
+  toDate: string;
+  days: ExamScheduleDay[];
+}
+
+export interface ExamTaskCompletionRequest {
+  taskId: string;
+  completed: boolean;
+}
+
+export interface ExamScheduleGenerateRequest {
+  subjects: ExamSubject[];
+  dailyHours: number;
+  startDate?: string;
+  reserveRevision?: boolean;
+  blockMinutes?: number;
+  shortBreakMinutes?: number;
+  longBreakMinutes?: number;
+  longBreakEveryNBlocks?: number;
+}
+
+export interface ExamScheduleGetResponse {
+  day?: string;
+  tasks?: ExamTask[];
+  schedule?: ExamScheduleResponse;
+}
+
+export interface ExamPreferencesRequest {
+  amEnabled?: boolean;
+  amTime?: string;
+  pmEnabled?: boolean;
+  pmTime?: string;
+  tz?: string;
+}

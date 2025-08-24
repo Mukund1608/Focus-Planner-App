@@ -139,8 +139,7 @@
 }
 
 .calendar-day.today {
-  background: var(--color-accent);
-  color: white;
+  /* Removed special styling to match other days */
 }
 
 .calendar-day.selected {

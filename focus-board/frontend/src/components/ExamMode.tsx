@@ -152,50 +152,7 @@ const ExamMode: React.FC = () => {
 
   return (
     <div className="exam-mode">
-      {/* Header */}
-      <div className="exam-mode-header">
-        <div className="header-content">
-          <h1 className="text-h1">📚 Exam Mode</h1>
-          <p className="text-body">
-            {schedule 
-              ? 'Your personalized study schedule is ready. Track your progress and stay on top of your exam preparation.'
-              : 'Create a personalized study schedule based on your subjects, exam dates, and available study time.'
-            }
-          </p>
-        </div>
-        
-        {schedule && !showInput && (
-          <div className="header-actions">
-            <button
-              className="btn-secondary"
-              onClick={handleRegenerate}
-              disabled={isLoading}
-            >
-              ✏️ Edit Plan
-            </button>
-            <button
-              className="btn-secondary"
-              onClick={handleDeleteSchedule}
-              disabled={isLoading}
-              style={{ backgroundColor: '#ef4444', color: 'white' }}
-            >
-              🗑️ Delete Plan
-            </button>
-          </div>
-        )}
-
-        {!schedule && !showInput && (
-          <div className="header-actions">
-            <button
-              className="btn-primary"
-              onClick={() => setShowInput(true)}
-              disabled={isLoading}
-            >
-              ➕ Add Plan
-            </button>
-          </div>
-        )}
-      </div>
+             {/* Header - Removed */}
 
       {/* Messages */}
       {error && (
@@ -227,6 +184,7 @@ const ExamMode: React.FC = () => {
             schedule={schedule}
             onTaskComplete={handleTaskComplete}
             onRegenerate={handleRegenerate}
+            onDelete={handleDeleteSchedule}
             isLoading={isLoading}
           />
         ) : (
@@ -250,36 +208,7 @@ const ExamMode: React.FC = () => {
         )}
       </div>
 
-      {/* Help Section */}
-      {!showInput && (
-        <div className="help-section">
-          <div className="help-content">
-            <h4 className="text-h3">💡 Tips for Effective Study</h4>
-            <div className="tips-grid">
-              <div className="tip-card">
-                <span className="tip-icon">⏰</span>
-                <h5>Follow the Schedule</h5>
-                <p>Stick to your daily study plan to maintain consistent progress.</p>
-              </div>
-              <div className="tip-card">
-                <span className="tip-icon">🎯</span>
-                <h5>Focus on Difficult Subjects</h5>
-                <p>Allocate more time to subjects you find challenging.</p>
-              </div>
-              <div className="tip-card">
-                <span className="tip-icon">🔄</span>
-                <h5>Take Regular Breaks</h5>
-                <p>Use the built-in break intervals to maintain focus and avoid burnout.</p>
-              </div>
-              <div className="tip-card">
-                <span className="tip-icon">📊</span>
-                <h5>Track Your Progress</h5>
-                <p>Mark completed tasks to see your study progress over time.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Help Section - Removed */}
     </div>
   );
 };

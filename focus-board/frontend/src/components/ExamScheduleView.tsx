@@ -6,6 +6,7 @@ interface ExamScheduleViewProps {
   schedule: ExamSchedule;
   onTaskComplete: (taskId: string, completed: boolean) => void;
   onRegenerate: () => void;
+  onDelete?: () => void;
   isLoading?: boolean;
 }
 
@@ -13,9 +14,10 @@ const ExamScheduleView: React.FC<ExamScheduleViewProps> = ({
   schedule,
   onTaskComplete,
   onRegenerate,
+  onDelete,
   isLoading = false
 }) => {
-  const [viewMode, setViewMode] = useState<'calendar' | 'board'>('calendar');
+  // viewMode state removed since only calendar view is used
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
   // Get today's date
@@ -27,37 +29,7 @@ const ExamScheduleView: React.FC<ExamScheduleViewProps> = ({
     return day?.tasks || [];
   };
 
-  // Get tasks for today
-  const todayTasks = getTasksForDate(today);
-
-  // Get tasks for tomorrow
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowTasks = getTasksForDate(tomorrow.toISOString().split('T')[0]);
-
-  // Get upcoming tasks (next 7 days)
-  const getUpcomingTasks = (): ExamTask[] => {
-    const upcoming: ExamTask[] = [];
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() + 2); // Start from day after tomorrow
-    
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(startDate);
-      date.setDate(date.getDate() + i);
-      const dateStr = date.toISOString().split('T')[0];
-      const tasks = getTasksForDate(dateStr);
-      upcoming.push(...tasks);
-    }
-    
-    return upcoming;
-  };
-
-  // Get completed tasks
-  const getCompletedTasks = (): ExamTask[] => {
-    return schedule.days.flatMap(day => 
-      day.tasks.filter(task => task.completedAt)
-    );
-  };
+  {/* Task Board related functions removed */}
 
   // Get subject color
   const getSubjectColor = (subjectId: string): string => {
@@ -169,240 +141,42 @@ const ExamScheduleView: React.FC<ExamScheduleViewProps> = ({
         })}
       </div>
 
-      {/* Selected Day Details */}
-      {selectedDate && (
-        <div className="selected-day-details">
-          <h4 className="text-h3">
-            {new Date(selectedDate).toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
-          </h4>
-          
-          <div className="day-tasks-list">
-            {getTasksForDate(selectedDate).map((task) => (
-              <div
-                key={task.id}
-                className={`task-item ${task.completedAt ? 'completed' : ''}`}
-              >
-                <div className="task-info">
-                  <div className="task-header">
-                    <span 
-                      className="task-subject-name"
-                      style={{ color: getSubjectColor(task.subjectId) }}
-                    >
-                      {task.subjectName}
-                    </span>
-                    <span className="task-difficulty-badge" style={{ backgroundColor: getDifficultyBadge(task.difficulty).color }}>
-                      {getDifficultyBadge(task.difficulty).text}
-                    </span>
-                  </div>
-                  <div className="task-details">
-                    <span className="task-time">{formatTime(task.plannedMinutes)}</span>
-                    <span className="task-blocks">{task.pomodoroBlocks} blocks</span>
-                  </div>
-                </div>
-                
-                <button
-                  className={`task-complete-btn ${task.completedAt ? 'completed' : ''}`}
-                  onClick={() => onTaskComplete(task.id, !task.completedAt)}
-                  disabled={isLoading}
-                >
-                  {task.completedAt ? '✅' : '⭕'}
-                </button>
-              </div>
-            ))}
-            
-            {getTasksForDate(selectedDate).length === 0 && (
-              <div className="no-tasks">
-                <p>No study tasks scheduled for this day</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Selected Day Details - Removed */}
     </div>
   );
 
-  // Task Board View
-  const TaskBoardView = () => (
-    <div className="task-board-view">
-      <div className="board-header">
-        <h3 className="text-h2">📋 Study Tasks</h3>
-        <div className="board-controls">
-          <button
-            className="btn-secondary"
-            onClick={onRegenerate}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Regenerating...' : '🔄 Regenerate Plan'}
-          </button>
-        </div>
-      </div>
+  {/* Task Board View - Removed */}
 
-      <div className="board-columns">
-        {/* Today Column */}
-        <div className="board-column">
-          <div className="column-header">
-            <h4 className="text-h3">Today</h4>
-            <span className="task-count">{todayTasks.length}</span>
-          </div>
-          <div className="task-cards">
-            {todayTasks.map((task) => (
-              <TaskCard key={task.id} task={task} onComplete={onTaskComplete} isLoading={isLoading} />
-            ))}
-            {todayTasks.length === 0 && (
-              <div className="empty-column">
-                <p>No tasks for today</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Tomorrow Column */}
-        <div className="board-column">
-          <div className="column-header">
-            <h4 className="text-h3">Tomorrow</h4>
-            <span className="task-count">{tomorrowTasks.length}</span>
-          </div>
-          <div className="task-cards">
-            {tomorrowTasks.map((task) => (
-              <TaskCard key={task.id} task={task} onComplete={onTaskComplete} isLoading={isLoading} />
-            ))}
-            {tomorrowTasks.length === 0 && (
-              <div className="empty-column">
-                <p>No tasks for tomorrow</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Upcoming Column */}
-        <div className="board-column">
-          <div className="column-header">
-            <h4 className="text-h3">Upcoming</h4>
-            <span className="task-count">{getUpcomingTasks().length}</span>
-          </div>
-          <div className="task-cards">
-            {getUpcomingTasks().map((task) => (
-              <TaskCard key={task.id} task={task} onComplete={onTaskComplete} isLoading={isLoading} />
-            ))}
-            {getUpcomingTasks().length === 0 && (
-              <div className="empty-column">
-                <p>No upcoming tasks</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Completed Column */}
-        <div className="board-column">
-          <div className="column-header">
-            <h4 className="text-h3">Completed</h4>
-            <span className="task-count">{getCompletedTasks().length}</span>
-          </div>
-          <div className="task-cards">
-            {getCompletedTasks().map((task) => (
-              <TaskCard key={task.id} task={task} onComplete={onTaskComplete} isLoading={isLoading} />
-            ))}
-            {getCompletedTasks().length === 0 && (
-              <div className="empty-column">
-                <p>No completed tasks</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Task Card Component
-  const TaskCard: React.FC<{ task: ExamTask; onComplete: (taskId: string, completed: boolean) => void; isLoading: boolean }> = ({ 
-    task, 
-    onComplete, 
-    isLoading 
-  }) => (
-    <div className={`task-card ${task.completedAt ? 'completed' : ''}`}>
-      <div 
-        className="task-color-bar"
-        style={{ backgroundColor: getSubjectColor(task.subjectId) }}
-      />
-      
-      <div className="task-content">
-        <div className="task-header">
-          <h5 className="task-title">{task.subjectName}</h5>
-          <span 
-            className="difficulty-badge"
-            style={{ backgroundColor: getDifficultyBadge(task.difficulty).color }}
-          >
-            {getDifficultyBadge(task.difficulty).text}
-          </span>
-        </div>
-        
-        <div className="task-details">
-          <span className="task-time">⏱️ {formatTime(task.plannedMinutes)}</span>
-          <span className="task-blocks">📦 {task.pomodoroBlocks} blocks</span>
-        </div>
-        
-        {task.completedAt && (
-          <div className="completion-time">
-            ✅ Completed at {new Date(task.completedAt).toLocaleTimeString()}
-          </div>
-        )}
-        
-        <button
-          className={`complete-btn ${task.completedAt ? 'completed' : ''}`}
-          onClick={() => onComplete(task.id, !task.completedAt)}
-          disabled={isLoading}
-        >
-          {task.completedAt ? 'Completed' : 'Mark Complete'}
-        </button>
-      </div>
-    </div>
-  );
+  {/* Task Card Component - Removed */}
 
   return (
     <div className="exam-schedule-view">
       <div className="view-header">
         <h2 className="text-h1">📚 Exam Study Schedule</h2>
         <div className="view-controls">
-          <div className="view-toggle">
-            <button
-              className={`view-btn ${viewMode === 'calendar' ? 'active' : ''}`}
-              onClick={() => setViewMode('calendar')}
-            >
-              📅 Calendar
-            </button>
-            <button
-              className={`view-btn ${viewMode === 'board' ? 'active' : ''}`}
-              onClick={() => setViewMode('board')}
-            >
-              📋 Task Board
-            </button>
-          </div>
+          <button
+            className="btn-secondary"
+            onClick={onRegenerate}
+            disabled={isLoading}
+          >
+            ✏️ Edit Plan
+          </button>
+          <button
+            className="btn-secondary"
+            onClick={() => {
+              if (window.confirm('Are you sure you want to delete this study schedule? This action cannot be undone.')) {
+                onDelete?.();
+              }
+            }}
+            disabled={isLoading}
+            style={{ backgroundColor: '#ef4444', color: 'white' }}
+          >
+            🗑️ Delete Plan
+          </button>
         </div>
       </div>
 
-      <div className="schedule-info">
-        <div className="info-card">
-          <span className="info-label">Schedule Period</span>
-          <span className="info-value">
-            {new Date(schedule.fromDate).toLocaleDateString()} - {new Date(schedule.toDate).toLocaleDateString()}
-          </span>
-        </div>
-        <div className="info-card">
-          <span className="info-label">Total Days</span>
-          <span className="info-value">{schedule.days.length} days</span>
-        </div>
-        <div className="info-card">
-          <span className="info-label">Version</span>
-          <span className="info-value">v{schedule.version}</span>
-        </div>
-      </div>
-
-      {viewMode === 'calendar' ? <CalendarView /> : <TaskBoardView />}
+      <CalendarView />
     </div>
   );
 };

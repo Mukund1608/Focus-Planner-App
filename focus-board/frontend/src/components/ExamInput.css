@@ -86,7 +86,7 @@
   border: 1px solid var(--color-border);
   border-radius: 8px;
   background: var(--color-surface);
-  color: var(--color-text-primary) !important;
+  color: #000000 !important;
   font-size: 0.875rem;
   transition: all 0.2s ease;
 }
@@ -103,7 +103,7 @@
 .form-select,
 .form-input:focus,
 .form-select:focus {
-  color: var(--color-text-primary) !important;
+  color: #000000 !important;
 }
 
 .form-input:focus,

@@ -13,6 +13,7 @@ import WeeklyView from './components/WeeklyView';
 import PriorityBoards from './components/PriorityBoards';
 import HabitTracker from './components/HabitTracker';
 import FocusMode from './components/FocusMode';
+import ExamMode from './components/ExamMode';
 import Settings from './components/Settings';
 
 function App() {
@@ -94,6 +95,16 @@ function App() {
               <ProtectedRoute>
                 <AppLayout>
                   <FocusMode />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/exam"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ExamMode />
                 </AppLayout>
               </ProtectedRoute>
             }
