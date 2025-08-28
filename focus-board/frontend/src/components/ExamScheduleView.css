@@ -1,4 +1,4 @@
-/* Exam Schedule View Styles */
+ /* Exam Schedule View Styles */
 .exam-schedule-view {
   padding: 1.5rem;
   max-width: 1400px;
@@ -50,12 +50,12 @@
 
 .view-btn.active {
   background: var(--color-accent);
-  color: white;
+  color: var(--color-text-primary);
 }
 
 .view-btn:hover:not(.active) {
   background: var(--color-surface);
-  color: var(--color-text-primary);
+  color: #000000 !important;
 }
 
 /* Schedule Info */
@@ -139,12 +139,13 @@
 }
 
 .calendar-day.today {
-  /* Removed special styling to match other days */
+  background: var(--color-accent);
+  color: var(--color-text-primary);
 }
 
 .calendar-day.selected {
   background: var(--color-blue-600);
-  color: white;
+  color: var(--color-text-primary);
 }
 
 .calendar-day.has-tasks {
@@ -215,7 +216,7 @@
   margin-top: 0.5rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-accent);
+  color: var(--color-text-primary);
   text-align: right;
 }
 
@@ -274,7 +275,7 @@
 .task-difficulty-badge {
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
-  color: white;
+  color: var(--color-text-primary);
   font-size: 0.75rem;
   font-weight: 500;
 }
@@ -377,7 +378,7 @@
 
 .task-count {
   background: var(--color-accent);
-  color: white;
+  color: var(--color-text-primary);
   padding: 0.25rem 0.5rem;
   border-radius: 12px;
   font-size: 0.75rem;
@@ -447,7 +448,7 @@
 .difficulty-badge {
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
-  color: white;
+  color: var(--color-text-primary);
   font-size: 0.75rem;
   font-weight: 500;
   white-space: nowrap;
@@ -470,7 +471,7 @@
 
 .completion-time {
   font-size: 0.75rem;
-  color: var(--color-accent);
+  color: var(--color-text-primary);
   margin-bottom: 0.75rem;
   font-weight: 500;
 }
@@ -490,13 +491,13 @@
 
 .complete-btn.completed {
   background: var(--color-accent);
-  color: white;
+  color: var(--color-text-primary);
   border-color: var(--color-accent);
 }
 
 .complete-btn:hover:not(:disabled) {
   background: var(--color-blue-600);
-  color: white;
+  color: var(--color-text-primary);
   border-color: var(--color-blue-600);
 }
 

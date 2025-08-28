@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { signOut, useSessionContext } from 'supertokens-auth-react/recipe/session';
 import { useNavigate } from 'react-router-dom';
@@ -17,20 +17,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const { theme } = useTheme();
   const session = useSessionContext();
 
-  const getIsDesktop = () => (typeof window !== 'undefined' ? window.innerWidth > 1024 : true);
-
-  const [isDesktop, setIsDesktop] = useState<boolean>(getIsDesktop());
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(getIsDesktop());
-
-  useEffect(() => {
-    const onResize = () => {
-      const desktop = getIsDesktop();
-      setIsDesktop(desktop);
-      setIsSidebarOpen(desktop);
-    };
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
+  // Sidebar is always open, no state needed
 
   const handleLogout = async () => {
     try {
@@ -53,13 +40,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   ];
 
   const closeSidebarOnNavigate = () => {
-    if (!isDesktop) {
-      setIsSidebarOpen(false);
-    }
+    // Sidebar stays open always, no need to close on navigation
   };
 
-  const rootClasses = `app-layout ${theme === 'dark' ? 'dark' : 'light'} ${isDesktop && !isSidebarOpen ? 'sidebar-collapsed' : ''}`;
-  const asideClasses = `sidebar ${!isDesktop ? (isSidebarOpen ? 'open' : '') : (!isSidebarOpen ? 'hidden' : '')}`;
+  const rootClasses = `app-layout ${theme === 'dark' ? 'dark' : 'light'}`;
+  const asideClasses = `sidebar`;
 
   return (
     <div className={rootClasses}>
@@ -102,15 +87,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         </div>
       </aside>
 
-      {!isDesktop && isSidebarOpen && <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />}
+      {/* Removed sidebar overlay since sidebar is always open */}
 
       <main className="main-content">
         <header className="top-header">
           <div className="header-content">
             <div className="header-left">
-              <button className="hamburger-btn" aria-label="Toggle menu" onClick={() => setIsSidebarOpen((v) => !v)}>
-                {isSidebarOpen ? '✕' : '☰'}
-              </button>
+              {/* Removed hamburger button since sidebar is always open */}
             </div>
             <h2 className="page-title text-h2">
               {location.pathname === '/' ? 'UpNXT' : navItems.find(item => item.path === location.pathname)?.label || 'Mission Control'}

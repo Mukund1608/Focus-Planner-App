@@ -383,73 +383,21 @@
   width: 100%;
 }
 
-/* Hamburger button */
-.hamburger-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  font-size: 1.1rem;
-  color: var(--color-text-primary);
-  transition: all 0.2s ease;
-}
+/* Hamburger button removed - sidebar is always open */
 
-.hamburger-btn:hover {
-  background-color: rgba(109, 123, 255, 0.08);
-  transform: scale(1.05);
-  border-color: var(--color-blue-accent);
-}
+/* Overlay removed - sidebar is always open */
 
-/* Overlay for mobile when sidebar open */
-.sidebar-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 900;
-  backdrop-filter: blur(2px);
-}
-
-/* Desktop collapse state */
-.app-layout.sidebar-collapsed .main-content {
-  margin-left: var(--sidebar-collapsed);
-}
-
-.sidebar.hidden {
-  width: var(--sidebar-collapsed);
-}
-
-.sidebar.hidden .brand-title,
-.sidebar.hidden .nav-label,
-.sidebar.hidden .logout-label,
-.sidebar.hidden .login-label {
-  display: none;
-}
-
-.sidebar.hidden .nav-icon,
-.sidebar.hidden .brand-icon,
-.sidebar.hidden .logout-icon,
-.sidebar.hidden .login-icon {
-  margin-right: 0;
-}
+/* Sidebar is always visible - removed collapse states */
 
 /* Responsive Design */
 @media (max-width: 1024px) {
   .main-content {
-    margin-left: 0;
+    margin-left: var(--sidebar-width);
   }
 
   .sidebar {
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    width: 270px;
-  }
-
-  .sidebar.open {
-    transform: translateX(0);
+    width: var(--sidebar-width);
+    transform: none;
   }
 
   .top-header .header-content {
